@@ -3,6 +3,13 @@
 
 #include <Arduino.h>
 
+struct FingerResult
+{
+    bool matched;
+    uint16_t id;
+    uint16_t confidence;
+};
+
 class Fingerprint
 {
 public:
@@ -13,11 +20,13 @@ public:
 
     bool verifySensor();
 
-    int scanFinger();
+    FingerResult scanFinger();
 
     bool enrollFinger(uint16_t id);
 
     bool deleteFinger(uint16_t id);
+
+    uint16_t getTemplateCount();
 };
 
 #endif
