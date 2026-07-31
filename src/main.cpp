@@ -11,7 +11,7 @@ void setup()
   Serial.println();
   Serial.println("========================");
   Serial.println("PROJECT PRISM");
-  Serial.println("Fingerprint Enrollment");
+  Serial.println("Smart Attendance System");
   Serial.println("========================");
 
   fingerprint.begin();
@@ -19,9 +19,6 @@ void setup()
   if (fingerprint.verifySensor())
   {
     Serial.println("Fingerprint Sensor Connected!");
-
-    Serial.print("Templates = ");
-    Serial.println(fingerprint.getTemplateCount());
   }
   else
   {
@@ -32,24 +29,47 @@ void setup()
       delay(100);
     }
   }
-
-  Serial.println("Fingerprint Sensor Connected!");
-
-  if (fingerprint.enrollFinger(1))
-  {
-    Serial.println();
-    Serial.println("********************************");
-    Serial.println("Enrollment Successful!");
-    Serial.println("Stored at ID = 1");
-    Serial.println("********************************");
-  }
-  else
-  {
-    Serial.println();
-    Serial.println("Enrollment Failed!");
-  }
 }
 
 void loop()
 {
+  Serial.println();
+  Serial.println("========== PRISM MENU ==========");
+  Serial.println("1. Enroll Finger");
+  Serial.println("2. Scan Finger");
+  Serial.println("3. Delete Finger");
+  Serial.println("4. Count Templates");
+  Serial.print("Enter Choice : ");
+
+  while (!Serial.available())
+    ;
+
+  int choice = Serial.parseInt();
+
+  Serial.readStringUntil('\n'); // Clear buffer
+
+  switch (choice)
+  {
+  case 1:
+    Serial.println("Enroll Selected");
+    break;
+
+  case 2:
+    Serial.println("Scan Selected");
+    break;
+
+  case 3:
+    Serial.println("Delete Selected");
+    break;
+
+  case 4:
+    Serial.print("Templates = ");
+    Serial.println(fingerprint.getTemplateCount());
+    break;
+
+  default:
+    Serial.println("Invalid Choice");
+  }
+
+  delay(500);
 }

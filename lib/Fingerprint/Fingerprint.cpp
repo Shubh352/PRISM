@@ -191,5 +191,7 @@ uint16_t Fingerprint::getTemplateCount()
 
 bool Fingerprint::deleteFinger(uint16_t id)
 {
-    return false;
+    uint8_t p = finger.deleteModel(id);
+
+    return (p == FINGERPRINT_OK);
 }
