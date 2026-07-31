@@ -20,13 +20,15 @@ public:
 
     bool verifySensor();
 
-    FingerResult scanFinger();
+    FingerResult authenticate();
 
     bool enrollFinger(uint16_t id);
 
     bool deleteFinger(uint16_t id);
 
     uint16_t getTemplateCount();
+
+    void waitForFingerRemoval();
 };
 
 #endif

@@ -1,18 +1,13 @@
 #include <Arduino.h>
 #include "Fingerprint.h"
+#include "Menu.h"
 
 Fingerprint fingerprint;
+Menu menu;
 
 void setup()
 {
   Serial.begin(115200);
-  delay(1000);
-
-  Serial.println();
-  Serial.println("========================");
-  Serial.println("PROJECT PRISM");
-  Serial.println("Smart Attendance System");
-  Serial.println("========================");
 
   fingerprint.begin();
 
@@ -33,33 +28,85 @@ void setup()
 
 void loop()
 {
-  Serial.println();
-  Serial.println("========== PRISM MENU ==========");
-  Serial.println("1. Enroll Finger");
-  Serial.println("2. Scan Finger");
-  Serial.println("3. Delete Finger");
-  Serial.println("4. Count Templates");
-  Serial.print("Enter Choice : ");
-
-  while (!Serial.available())
-    ;
-
-  int choice = Serial.parseInt();
-
-  Serial.readStringUntil('\n'); // Clear buffer
+  int choice = menu.run();
 
   switch (choice)
   {
   case 1:
-    Serial.println("Enroll Selected");
+  {
+    Serial.print("Enter ID (1-127): ");
+
+    while (!Serial.available())
+      ;
+
+    int id = Serial.parseInt();
+    Serial.readStringUntil('\n');
+
+    if (fingerprint.enrollFinger(id))
+    {
+      Serial.println("Enrollment Successful!");
+    }
+    else
+    {
+      Serial.println("Enrollment Failed!");
+    }
+
     break;
+  }
 
   case 2:
-    Serial.println("Scan Selected");
+  {
+    Serial.println();
+    Serial.println("=================================");
+    Serial.println("ATTENDANCE MODE");
+    Serial.println("Press 'q' to Exit");
+    Serial.println("=================================");
+
+    while (true)
+    {
+      if (Serial.available())
+      {
+        char c = Serial.read();
+
+        if (c == 'q' || c == 'Q')
+        {
+          Serial.println("Leaving Attendance Mode...");
+          break;
+        }
+      }
+
+      FingerResult result = fingerprint.authenticate();
+
+      if (!result.matched)
+      {
+        continue;
+      }
+
+      Serial.println();
+      Serial.println("******** ACCESS GRANTED ********");
+
+      Serial.print("ID : ");
+      Serial.println(result.id);
+
+      Serial.print("Confidence : ");
+      Serial.println(result.confidence);
+
+      Serial.println("Remove Finger...");
+
+      fingerprint.waitForFingerRemoval();
+
+      Serial.println("Finger Removed.");
+
+      Serial.println();
+      Serial.println("Ready for Next Student");
+      Serial.println();
+    }
+
     break;
+  }
 
   case 3:
-    Serial.println("Delete Selected");
+    Serial.println("Main -> Delete");
     break;
 
   case 4:
@@ -69,7 +116,8 @@ void loop()
 
   default:
     Serial.println("Invalid Choice");
+    break;
   }
 
-  delay(500);
+  delay(300);
 }

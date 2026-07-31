@@ -27,11 +27,6 @@ void Fingerprint::begin()
     mySerial.begin(57600, SERIAL_8N1, 16, 17);
 
     finger.begin(57600);
-
-    finger.getTemplateCount();
-
-    Serial.print("Templates = ");
-    Serial.println(finger.templateCount);
 }
 
 // ----------------------------
@@ -47,7 +42,7 @@ bool Fingerprint::verifySensor()
 // Placeholder Functions
 // ----------------------------
 
-FingerResult Fingerprint::scanFinger()
+FingerResult Fingerprint::authenticate()
 {
     FingerResult result;
 
@@ -55,45 +50,64 @@ FingerResult Fingerprint::scanFinger()
     result.id = 0;
     result.confidence = 0;
 
-    uint8_t p = finger.getImage();
+    const int MAX_ATTEMPTS = 5;
 
-    if (p != FINGERPRINT_OK)
+    for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++)
     {
-        if (p != FINGERPRINT_NOFINGER)
+        Serial.println("Waiting for finger...");
+
+        uint8_t p;
+
+        // Wait until finger is placed
+        while (true)
         {
-            Serial.print("getImage() Error: ");
-            Serial.println(p);
+            p = finger.getImage();
+
+            if (p == FINGERPRINT_OK)
+                break;
+
+            if (p != FINGERPRINT_NOFINGER)
+            {
+                Serial.print("getImage Error: ");
+                Serial.println(p);
+                return result;
+            }
+
+            delay(50);
         }
-        return result;
+
+        Serial.println("Finger Detected!");
+
+        p = finger.image2Tz();
+
+        if (p != FINGERPRINT_OK)
+        {
+            Serial.println("Bad Finger Position");
+            Serial.println("Please adjust finger...");
+            waitForFingerRemoval();
+            continue;
+        }
+
+        p = finger.fingerFastSearch();
+
+        if (p == FINGERPRINT_OK)
+        {
+            result.matched = true;
+            result.id = finger.fingerID;
+            result.confidence = finger.confidence;
+
+            Serial.println("Fingerprint Found!");
+
+            return result;
+        }
+
+        Serial.println("Fingerprint Not Recognized");
+        Serial.println("Please place finger again.");
+
+        waitForFingerRemoval();
     }
 
-    Serial.println("Image Captured");
-
-    p = finger.image2Tz();
-
-    if (p != FINGERPRINT_OK)
-    {
-        Serial.print("image2Tz() Error: ");
-        Serial.println(p);
-        return result;
-    }
-
-    Serial.println("Image Converted");
-
-    p = finger.fingerFastSearch();
-
-    if (p != FINGERPRINT_OK)
-    {
-        Serial.print("fingerSearch() Error: ");
-        Serial.println(p);
-        return result;
-    }
-
-    Serial.println("Fingerprint Found!");
-
-    result.matched = true;
-    result.id = finger.fingerID;
-    result.confidence = finger.confidence;
+    Serial.println("Authentication Failed.");
 
     return result;
 }
@@ -180,6 +194,13 @@ bool Fingerprint::enrollFinger(uint16_t id)
         return false;
     }
 
+    Serial.println("Model Stored Successfully!");
+
+    finger.getTemplateCount();
+
+    Serial.print("Templates After Store = ");
+    Serial.println(finger.templateCount);
+
     return true;
 }
 
@@ -194,4 +215,14 @@ bool Fingerprint::deleteFinger(uint16_t id)
     uint8_t p = finger.deleteModel(id);
 
     return (p == FINGERPRINT_OK);
+}
+
+void Fingerprint::waitForFingerRemoval()
+{
+    while (finger.getImage() != FINGERPRINT_NOFINGER)
+    {
+        delay(50);
+    }
+
+    delay(200);
 }
