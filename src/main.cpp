@@ -1,15 +1,19 @@
 #include <Arduino.h>
 #include "Fingerprint.h"
 #include "Menu.h"
+#include "Attendance.h"
 
 Fingerprint fingerprint;
 Menu menu;
+Attendance attendance;
 
 void setup()
 {
   Serial.begin(115200);
 
   fingerprint.begin();
+
+  attendance.begin();
 
   if (fingerprint.verifySensor())
   {
@@ -82,14 +86,7 @@ void loop()
         continue;
       }
 
-      Serial.println();
-      Serial.println("******** ACCESS GRANTED ********");
-
-      Serial.print("ID : ");
-      Serial.println(result.id);
-
-      Serial.print("Confidence : ");
-      Serial.println(result.confidence);
+      attendance.processScan(result.id);
 
       Serial.println("Remove Finger...");
 
