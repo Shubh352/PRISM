@@ -15,7 +15,7 @@ void setup()
 
   attendance.begin();
 
-    if (fingerprint.verifySensor())
+  if (fingerprint.verifySensor())
   {
     Serial.println("Fingerprint Sensor Connected!");
   }
@@ -103,9 +103,31 @@ void loop()
   }
 
   case 3:
-    Serial.println("Main -> Delete");
-    break;
+  {
+    Serial.print("Enter Fingerprint ID to Delete (1-127): ");
 
+    while (!Serial.available())
+      ;
+
+    int id = Serial.parseInt();
+    Serial.readStringUntil('\n');
+
+    if (fingerprint.deleteFinger(id))
+    {
+      Serial.println();
+      Serial.println("Fingerprint Deleted Successfully!");
+
+      Serial.print("Templates = ");
+      Serial.println(fingerprint.getTemplateCount());
+    }
+    else
+    {
+      Serial.println();
+      Serial.println("Failed to Delete Fingerprint!");
+    }
+
+    break;
+  }
   case 4:
     Serial.print("Templates = ");
     Serial.println(fingerprint.getTemplateCount());
