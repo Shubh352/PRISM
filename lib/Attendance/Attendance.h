@@ -3,6 +3,8 @@
 
 #include <Arduino.h>
 
+#include "UserManager.h"
+
 struct AttendanceRecord
 {
     uint16_t id;
@@ -22,6 +24,7 @@ public:
     void processScan(uint16_t id);
 
 private:
+    UserManager userManager;
     static const int MAX_USERS = 200;
 
     AttendanceRecord records[MAX_USERS];
@@ -41,7 +44,6 @@ private:
     void createRecord(uint16_t id);
 
     void punchOut(int index);
-    
 };
 
 #endif

@@ -1,7 +1,9 @@
 #include "Attendance.h"
 
+
 void Attendance::begin()
 {
+    userManager.begin();
     lastID = 0;
     lastScanTime = 0;
     totalRecords = 0;
@@ -31,12 +33,21 @@ void Attendance::createRecord(uint16_t id)
     records[totalRecords].punchOutTime = 0;
 
     totalRecords++;
+    User user = userManager.getUser(id);
 
     Serial.println();
+    Serial.println("==========================");
     Serial.println("Punch IN Recorded");
+    Serial.println("==========================");
 
-    Serial.print("ID : ");
-    Serial.println(id);
+    Serial.print("Name : ");
+    Serial.println(user.name);
+
+    Serial.print("Roll : ");
+    Serial.println(user.rollNumber);
+
+    Serial.print("Fingerprint ID : ");
+    Serial.println(user.fingerprintID);
 }
 
 void Attendance::punchOut(int index)

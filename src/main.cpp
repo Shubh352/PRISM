@@ -15,7 +15,7 @@ void setup()
 
   attendance.begin();
 
-  if (fingerprint.verifySensor())
+    if (fingerprint.verifySensor())
   {
     Serial.println("Fingerprint Sensor Connected!");
   }
