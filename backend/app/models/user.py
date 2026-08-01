@@ -12,8 +12,12 @@ class User(Base):
 
     roll_number = Column(String, unique=True, nullable=False)
 
+    fingerprint_id = Column(Integer, unique=True, nullable=False)
+
     department = Column(String, nullable=False)
 
     semester = Column(Integer, nullable=False)
 
     user_type = Column(String, nullable=False)
+
+    
