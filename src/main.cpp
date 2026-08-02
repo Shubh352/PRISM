@@ -3,11 +3,13 @@
 #include "Menu.h"
 #include "Attendance.h"
 #include "WiFiManager.h"
+#include "BackendClient.h"
 
 Fingerprint fingerprint;
 Menu menu;
 Attendance attendance;
 WiFiManager wifiManager;
+BackendClient backendClient;
 
 void setup()
 {
@@ -89,7 +91,7 @@ void loop()
         continue;
       }
 
-      attendance.processScan(result.id);
+      backendClient.sendAttendance(result.id);
 
       Serial.println("Remove Finger...");
 
