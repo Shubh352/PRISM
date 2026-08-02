@@ -1,10 +1,14 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.dependencies import get_db
-from app.schemas.attendance import AttendanceCreate
+from app.schemas.attendance import (
+    AttendanceCreate,
+    AttendanceResponse,
+    AttendanceDetailsResponse
+)
 from app.services.attendance_service import AttendanceService
 from app.models.attendance import Attendance
-from app.schemas.attendance import AttendanceResponse
+
 
 router = APIRouter()
 
@@ -22,11 +26,28 @@ def create_attendance(
     attendance.fingerprint_id
 )
 
-@router.get("/attendance", response_model=list[AttendanceResponse])
+@router.get("/attendance", response_model=list[AttendanceDetailsResponse])
 def get_attendance(
     db: Session = Depends(get_db)
 ):
 
     records = db.query(Attendance).all()
 
-    return records
+    response = []
+
+    for attendance in records:
+
+        response.append(
+            AttendanceDetailsResponse(
+                name=attendance.user.name,
+                roll_number=attendance.user.roll_number,
+                department=attendance.user.department,
+                semester=attendance.user.semester,
+
+                attendance_date=attendance.attendance_date,
+                punch_in=attendance.punch_in,
+                punch_out=attendance.punch_out
+            )
+        )
+
+    return response

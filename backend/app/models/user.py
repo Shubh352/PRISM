@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String
+from sqlalchemy.orm import relationship
 
 from app.database.database import Base
 
@@ -19,5 +20,10 @@ class User(Base):
     semester = Column(Integer, nullable=False)
 
     user_type = Column(String, nullable=False)
+
+    attendance_records = relationship(
+    "Attendance",
+    back_populates="user"
+)
 
     

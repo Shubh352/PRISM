@@ -14,3 +14,13 @@ class AttendanceResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class AttendanceDetailsResponse(BaseModel):
+    name: str
+    roll_number: str
+    department: str
+    semester: int
+
+    attendance_date: date
+    punch_in: datetime
+    punch_out: datetime | None        
