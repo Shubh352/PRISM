@@ -2,14 +2,17 @@
 #include "Fingerprint.h"
 #include "Menu.h"
 #include "Attendance.h"
+#include "WiFiManager.h"
 
 Fingerprint fingerprint;
 Menu menu;
 Attendance attendance;
+WiFiManager wifiManager;
 
 void setup()
 {
   Serial.begin(115200);
+  wifiManager.begin();
 
   fingerprint.begin();
 
