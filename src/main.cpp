@@ -71,6 +71,8 @@ void loop()
     Serial.println("Press 'q' to Exit");
     Serial.println("=================================");
 
+    bool waitingMessageShown = false;
+
     while (true)
     {
       if (Serial.available())
@@ -80,16 +82,29 @@ void loop()
         if (c == 'q' || c == 'Q')
         {
           Serial.println("Leaving Attendance Mode...");
+          while (Serial.available())
+          {
+            Serial.read();
+          }
           break;
         }
+      }
+
+      if (!waitingMessageShown)
+      {
+        Serial.println("Waiting for finger...");
+        waitingMessageShown = true;
       }
 
       FingerResult result = fingerprint.authenticate();
 
       if (!result.matched)
       {
+        delay(50);
         continue;
       }
+
+      waitingMessageShown = false;
 
       backendClient.sendAttendance(result.id);
 

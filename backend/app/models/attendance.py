@@ -2,7 +2,8 @@ from sqlalchemy import Column, Integer, DateTime, ForeignKey
 from datetime import datetime
 
 from app.database.database import Base
-
+from sqlalchemy import Date
+from datetime import date
 
 class Attendance(Base):
     __tablename__ = "attendance"
@@ -10,6 +11,8 @@ class Attendance(Base):
     id = Column(Integer, primary_key=True, index=True)
 
     user_id = Column(Integer, ForeignKey("users.id"))
+    
+    attendance_date = Column(Date, default=date.today)
 
     punch_in = Column(DateTime, default=datetime.utcnow)
 

@@ -54,26 +54,22 @@ FingerResult Fingerprint::authenticate()
 
     for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++)
     {
-        Serial.println("Waiting for finger...");
 
         uint8_t p;
 
         // Wait until finger is placed
-        while (true)
+        p = finger.getImage();
+
+        if (p == FINGERPRINT_NOFINGER)
         {
-            p = finger.getImage();
+            return result;
+        }
 
-            if (p == FINGERPRINT_OK)
-                break;
-
-            if (p != FINGERPRINT_NOFINGER)
-            {
-                Serial.print("getImage Error: ");
-                Serial.println(p);
-                return result;
-            }
-
-            delay(50);
+        if (p != FINGERPRINT_OK)
+        {
+            Serial.print("getImage Error: ");
+            Serial.println(p);
+            return result;
         }
 
         Serial.println("Finger Detected!");
