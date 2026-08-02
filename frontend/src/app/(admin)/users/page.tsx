@@ -2,25 +2,52 @@
 
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
-import AddUserModal from "@/components/users/AddUserModal";
+import UserModal from "@/components/users/UserModal";
+import toast from "react-hot-toast";
 
 export default function UsersPage() {
     const [users, setUsers] = useState([]);
     const [search, setSearch] = useState("");
     const [showModal, setShowModal] = useState(false);
+    const [selectedUser, setSelectedUser] = useState<any>(null);
+
+    async function fetchUsers() {
+        try {
+            const response = await api.get("/users");
+            setUsers(response.data);
+        } catch (error) {
+            console.error(error);
+        }
+    }
 
     useEffect(() => {
-        async function fetchUsers() {
-            try {
-                const response = await api.get("/users");
-                setUsers(response.data);
-            } catch (error) {
-                console.error(error);
-            }
-        }
-
         fetchUsers();
     }, []);
+
+    async function handleDelete(user: any) {
+
+        const confirmed = window.confirm(
+            `Delete ${user.name}?`
+        );
+
+        if (!confirmed) return;
+
+        try {
+
+            await api.delete(`/users/${user.id}`);
+
+            toast.success("User deleted successfully!");
+
+            fetchUsers();
+
+        } catch (error) {
+
+            console.error(error);
+
+            toast.error("Failed to delete user.");
+
+        }
+    }
 
     return (
         <>
@@ -37,7 +64,10 @@ export default function UsersPage() {
                 </div>
 
                 <button
-                    onClick={() => setShowModal(true)}
+                    onClick={() => {
+                        setSelectedUser(null);
+                        setShowModal(true);
+                    }}
                     className="rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700 transition"
                 >
                     + Add User
@@ -66,6 +96,11 @@ export default function UsersPage() {
                             <th className="px-4 py-3 text-left">Department</th>
                             <th className="px-4 py-3 text-left">Semester</th>
                             <th className="px-4 py-3 text-left">Type</th>
+
+                            <th className="px-4 py-3 text-left">
+                                Actions
+                            </th>
+
                         </tr>
 
                     </thead>
@@ -103,6 +138,27 @@ export default function UsersPage() {
                                         {user.user_type}
                                     </td>
 
+                                    <td className="px-4 py-3 flex gap-2">
+
+                                        <button
+                                            onClick={() => {
+                                                setSelectedUser(user);
+                                                setShowModal(true);
+                                            }}
+                                            className="rounded bg-yellow-500 px-3 py-1 text-white hover:bg-yellow-600"
+                                        >
+                                            Edit
+                                        </button>
+
+                                        <button
+                                            onClick={() => handleDelete(user)}
+                                            className="rounded bg-red-600 px-3 py-1 text-white hover:bg-red-700"
+                                        >
+                                            Delete
+                                        </button>
+
+                                    </td>
+
                                 </tr>
 
                             ))}
@@ -112,9 +168,14 @@ export default function UsersPage() {
                 </table>
 
             </div>
-            <AddUserModal
+            <UserModal
                 isOpen={showModal}
-                onClose={() => setShowModal(false)}
+                onClose={() => {
+                    setShowModal(false);
+                    setSelectedUser(null);
+                }}
+                onUserAdded={fetchUsers}
+                user={selectedUser}
             />
         </>
     );
