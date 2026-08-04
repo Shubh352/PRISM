@@ -1,0 +1,19 @@
+<mxfile host="app.diagrams.net"><diagram name="PRISM ER Diagram"><mxGraphModel><root>
+<mxCell id="0"/><mxCell id="1" parent="0"/>
+<mxCell id="d" value="Department&#10;PK id&#10;department_name&#10;department_code" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="40" y="40" width="220" height="120" as="geometry"/></mxCell>
+<mxCell id="u" value="User&#10;PK id&#10;name&#10;roll_number&#10;fingerprint_id&#10;FK department_id&#10;semester&#10;user_type" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="340" y="40" width="240" height="170" as="geometry"/></mxCell>
+<mxCell id="a" value="Attendance&#10;PK id&#10;FK user_id&#10;attendance_date&#10;entry_1_time&#10;entry_2_time&#10;punch_out_time" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="650" y="40" width="260" height="170" as="geometry"/></mxCell>
+<mxCell id="as" value="AcademicSession&#10;PK id&#10;session_name&#10;start_date&#10;end_date&#10;is_active" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="40" y="240" width="220" height="140" as="geometry"/></mxCell>
+<mxCell id="s" value="Schedule&#10;PK id&#10;FK department_id&#10;FK academic_session_id&#10;semester&#10;day_of_week" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="340" y="240" width="240" height="150" as="geometry"/></mxCell>
+<mxCell id="ss" value="ScheduleSession&#10;PK id&#10;FK schedule_id&#10;session_number&#10;start_time&#10;attendance_window_minutes" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="650" y="240" width="270" height="160" as="geometry"/></mxCell>
+<mxCell id="dev" value="Device&#10;PK id&#10;device_name&#10;device_code&#10;FK department_id&#10;location&#10;is_active" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="40" y="450" width="220" height="150" as="geometry"/></mxCell>
+<mxCell id="log" value="DeviceLog&#10;PK id&#10;FK attendance_id&#10;FK device_id&#10;fingerprint_id&#10;event&#10;scan_time&#10;sync_status" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1"><mxGeometry x="970" y="40" width="250" height="180" as="geometry"/></mxCell>
+<mxCell id="e1" edge="1" parent="1" source="d" target="u"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e2" edge="1" parent="1" source="u" target="a"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e3" edge="1" parent="1" source="d" target="s"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e4" edge="1" parent="1" source="as" target="s"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e5" edge="1" parent="1" source="s" target="ss"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e6" edge="1" parent="1" source="d" target="dev"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e7" edge="1" parent="1" source="a" target="log"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="e8" edge="1" parent="1" source="dev" target="log"><mxGeometry relative="1" as="geometry"/></mxCell>
+</root></mxGraphModel></diagram></mxfile>

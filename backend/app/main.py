@@ -2,9 +2,7 @@ from fastapi import FastAPI
 
 from app.database.database import Base, engine
 
-import app.models.user
-
-import app.models.attendance
+import app.models
 
 from app.routers import users
 
@@ -12,7 +10,7 @@ from app.routers import attendance
 
 from fastapi.middleware.cors import CORSMiddleware
 
-Base.metadata.create_all(bind=engine)
+# Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="PROJECT PRISM API",

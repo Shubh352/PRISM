@@ -1,7 +1,16 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Integer,
+    String,
+)
 from sqlalchemy.orm import relationship
-
+from datetime import datetime
 from app.database.database import Base
+from app.enums.user_type import UserType
 
 
 class User(Base):
@@ -15,15 +24,26 @@ class User(Base):
 
     fingerprint_id = Column(Integer, unique=True, nullable=False)
 
-    department = Column(String, nullable=False)
-
+    department_id = Column(Integer, ForeignKey("departments.id"), nullable=False)
     semester = Column(Integer, nullable=False)
 
-    user_type = Column(String, nullable=False)
+    user_type = Column(
+        Enum(UserType),
+        nullable=False,
+    )
+
+    is_active = Column(Boolean, default=True)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     attendance_records = relationship(
     "Attendance",
-    back_populates="user"
+    back_populates="user",
 )
 
-    
+department = relationship(
+    "Department",
+    back_populates="users",
+)

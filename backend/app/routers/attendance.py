@@ -23,7 +23,8 @@ def create_attendance(
 
     return attendance_service.process_scan(
     db,
-    attendance.fingerprint_id
+    attendance.fingerprint_id,
+    attendance.action,
 )
 
 @router.get("/attendance", response_model=list[AttendanceDetailsResponse])
@@ -41,12 +42,13 @@ def get_attendance(
             AttendanceDetailsResponse(
                 name=attendance.user.name,
                 roll_number=attendance.user.roll_number,
-                department=attendance.user.department,
+                department=attendance.user.department.department_name,
                 semester=attendance.user.semester,
 
                 attendance_date=attendance.attendance_date,
-                punch_in=attendance.punch_in,
-                punch_out=attendance.punch_out
+                entry_1_time=attendance.entry_1_time,
+                entry_2_time=attendance.entry_2_time,
+                punch_out_time=attendance.punch_out_time,
             )
         )
 
