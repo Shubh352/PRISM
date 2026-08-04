@@ -4,6 +4,7 @@ from app.enums.scan_event import ScanEvent
 
 class AttendanceCreate(BaseModel):
     fingerprint_id: int
+    device_code: str
     action: ScanEvent
 
 class AttendanceResponse(BaseModel):

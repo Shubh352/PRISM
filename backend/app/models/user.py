@@ -41,9 +41,9 @@ class User(Base):
     attendance_records = relationship(
     "Attendance",
     back_populates="user",
-)
+    )
 
-department = relationship(
-    "Department",
-    back_populates="users",
-)
+    department = relationship(
+        "Department",
+        back_populates="users",
+    )

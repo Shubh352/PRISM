@@ -4,11 +4,16 @@ from app.dependencies import get_db
 from app.schemas.attendance import (
     AttendanceCreate,
     AttendanceResponse,
-    AttendanceDetailsResponse
+    AttendanceDetailsResponse,
 )
-from app.services.attendance_service import AttendanceService
+from app.services.attendance.attendance_service import AttendanceService
 from app.models.attendance import Attendance
+from app.models.device import Device
 
+from app.models.user import User
+from app.models.schedule import Schedule
+from app.models.academic_session import AcademicSession
+from app.models.schedule_session import ScheduleSession
 
 router = APIRouter()
 
@@ -16,21 +21,18 @@ attendance_service = AttendanceService()
 
 
 @router.post("/attendance")
-def create_attendance(
-    attendance: AttendanceCreate,
-    db: Session = Depends(get_db)
-):
+def create_attendance(attendance: AttendanceCreate, db: Session = Depends(get_db)):
 
     return attendance_service.process_scan(
-    db,
-    attendance.fingerprint_id,
-    attendance.action,
-)
+        db,
+        attendance.fingerprint_id,
+        attendance.device_code,
+        attendance.action,
+    )
+
 
 @router.get("/attendance", response_model=list[AttendanceDetailsResponse])
-def get_attendance(
-    db: Session = Depends(get_db)
-):
+def get_attendance(db: Session = Depends(get_db)):
 
     records = db.query(Attendance).all()
 
@@ -44,7 +46,6 @@ def get_attendance(
                 roll_number=attendance.user.roll_number,
                 department=attendance.user.department.department_name,
                 semester=attendance.user.semester,
-
                 attendance_date=attendance.attendance_date,
                 entry_1_time=attendance.entry_1_time,
                 entry_2_time=attendance.entry_2_time,
