@@ -8,15 +8,20 @@
 class PrismDisplay
 {
 public:
-
     bool begin();
 
     void showBootScreen();
 
     void showClock(
-        const DateTime& now
-    );
+        const DateTime &now);
 
+    void showScanning();
+
+    void showSuccess(
+        const String &message);
+
+    void showError(
+        const String &message);
 };
 
 #endif

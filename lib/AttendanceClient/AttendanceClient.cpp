@@ -4,21 +4,24 @@
 #include <WiFi.h>
 
 #include "Config.h"
+#include <ArduinoJson.h>
 
-bool AttendanceClient::sendAttendance(
+AttendanceResponse AttendanceClient::sendAttendance(
     uint16_t fingerprintId)
 {
+    AttendanceResponse response;
     if (WiFi.status() != WL_CONNECTED)
     {
         Serial.println("WiFi Not Connected");
-        return false;
+        response.success = false;
+        response.message = "WiFi Not Connected";
+
+        return response;
     }
 
     HTTPClient http;
 
     String url = String(SERVER_URL) + "/attendance";
-    http.begin(url);
-
     http.begin(url);
 
     http.addHeader(
@@ -42,11 +45,36 @@ bool AttendanceClient::sendAttendance(
 
     if (responseCode > 0)
     {
-        Serial.println(
-            http.getString());
+        String payload = http.getString();
+
+        Serial.println(payload);
+
+        JsonDocument doc;
+
+        DeserializationError error =
+            deserializeJson(doc, payload);
+
+        if (!error)
+        {
+            response.success =
+                doc["success"];
+
+            response.message =
+                doc["message"].as<String>();
+        }
+        else
+        {
+            response.success = false;
+            response.message = "Invalid JSON";
+        }
+    }
+    else
+    {
+        response.success = false;
+        response.message = "HTTP Request Failed";
     }
 
     http.end();
 
-    return (responseCode == 200);
+    return response;
 }

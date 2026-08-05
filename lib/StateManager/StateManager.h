@@ -4,9 +4,9 @@
 enum class PrismState
 {
     BOOT,
-    READY,
-    SCANNING,
-    PROCESSING,
+    IDLE,
+    WAIT_FOR_FINGER,
+    VERIFYING,
     SUCCESS,
     ERROR
 };

@@ -2,14 +2,12 @@
 #define ATTENDANCE_CLIENT_H
 
 #include <Arduino.h>
-
+#include "AttendanceResponse.h"
 class AttendanceClient
 {
 public:
-
-    bool sendAttendance(
-        uint16_t fingerprintId
-    );
+    AttendanceResponse sendAttendance(
+        uint16_t fingerprintId);
 };
 
 #endif

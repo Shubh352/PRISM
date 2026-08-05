@@ -6,13 +6,14 @@
 class RTCManager
 {
 public:
-
     bool begin();
 
     DateTime now();
 
-private:
+    void adjustToCompileTime();
+    bool lostPower();
 
+private:
     RTC_DS3231 rtc;
 };
 

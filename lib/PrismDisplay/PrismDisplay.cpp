@@ -9,15 +9,13 @@ Adafruit_SSD1306 display(
     SCREEN_WIDTH,
     SCREEN_HEIGHT,
     &Wire,
-    -1
-);
+    -1);
 
 bool PrismDisplay::begin()
 {
-    if(!display.begin(
-        SSD1306_SWITCHCAPVCC,
-        0x3C
-    ))
+    if (!display.begin(
+            SSD1306_SWITCHCAPVCC,
+            0x3C))
     {
         return false;
     }
@@ -34,28 +32,27 @@ void PrismDisplay::showBootScreen()
     display.clearDisplay();
 
     display.setTextSize(2);
-    display.setCursor(5,10);
+    display.setCursor(5, 10);
     display.println("PRISM");
 
     display.setTextSize(1);
-    display.setCursor(10,40);
+    display.setCursor(10, 40);
     display.println("Initializing...");
 
     display.display();
 }
 
 void PrismDisplay::showClock(
-    const DateTime& now
-)
+    const DateTime &now)
 {
     display.clearDisplay();
 
     display.setTextSize(1);
 
-    display.setCursor(0,0);
+    display.setCursor(0, 0);
     display.println("PROJECT PRISM");
 
-    display.setCursor(0,20);
+    display.setCursor(0, 20);
 
     display.print(now.day());
     display.print("/");
@@ -63,22 +60,69 @@ void PrismDisplay::showClock(
     display.print("/");
     display.println(now.year());
 
-    display.setCursor(0,40);
+    display.setCursor(0, 40);
 
     display.print(now.hour());
     display.print(":");
 
-    if(now.minute() < 10)
+    if (now.minute() < 10)
         display.print("0");
 
     display.print(now.minute());
 
     display.print(":");
 
-    if(now.second() < 10)
+    if (now.second() < 10)
         display.print("0");
 
     display.println(now.second());
+
+    display.display();
+}
+
+void PrismDisplay::showScanning()
+{
+    display.clearDisplay();
+
+    display.setTextSize(2);
+    display.setCursor(8, 18);
+    display.println("SCAN");
+
+    display.setTextSize(1);
+    display.setCursor(18, 45);
+    display.println("Place Finger");
+
+    display.display();
+}
+
+void PrismDisplay::showSuccess(
+    const String &message)
+{
+    display.clearDisplay();
+
+    display.setTextSize(2);
+    display.setCursor(10, 5);
+    display.println("SUCCESS");
+
+    display.setTextSize(1);
+    display.setCursor(0, 38);
+    display.println(message);
+
+    display.display();
+}
+
+void PrismDisplay::showError(
+    const String &message)
+{
+    display.clearDisplay();
+
+    display.setTextSize(2);
+    display.setCursor(22, 5);
+    display.println("ERROR");
+
+    display.setTextSize(1);
+    display.setCursor(0, 38);
+    display.println(message);
 
     display.display();
 }

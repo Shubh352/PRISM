@@ -7,6 +7,8 @@
 #include "WiFiManager.h"
 #include "AttendanceClient.h"
 #include "Config.h"
+#include "ButtonManager.h"
+#include "AttendanceAction.h"
 
 PrismDisplay prismDisplay;
 Fingerprint fingerprint;
@@ -15,6 +17,11 @@ StateManager stateManager;
 FingerResult currentFinger;
 WiFiManager wifiManager;
 AttendanceClient attendanceClient;
+ButtonManager buttonManager;
+AttendanceAction currentAction =
+    AttendanceAction::ENTRY;
+
+unsigned long lastClockUpdate = 0;
 
 void setup()
 {
@@ -24,6 +31,7 @@ void setup()
     Serial.println("START");
 
     Wire.begin(21, 22);
+    buttonManager.begin();
 
     if (!prismDisplay.begin())
     {
@@ -42,6 +50,7 @@ void setup()
         while (true)
             ;
     }
+    rtc.adjustToCompileTime();
 
     Serial.println("RTC OK");
 
@@ -61,29 +70,59 @@ void setup()
         WIFI_SSID,
         WIFI_PASSWORD);
 
-    delay(2000);
-
-    stateManager.setState(PrismState::READY);
+    stateManager.setState(PrismState::IDLE);
 }
 
 void loop()
 {
+
+    // if (buttonManager.entryJustPressed())
+    // {
+    //     Serial.println("ENTRY");
+    // }
+
+    // if (buttonManager.exitJustPressed())
+    // {
+    //     Serial.println("EXIT");
+    // }
+
+    delay(500);
     switch (stateManager.getState())
     {
-    case PrismState::READY:
+    case PrismState::IDLE:
 
-        prismDisplay.showClock(
-            rtc.now());
+        if (millis() - lastClockUpdate >= 1000)
+        {
+            prismDisplay.showClock(
+                rtc.now());
 
-        delay(5000);
+            lastClockUpdate = millis();
+        }
 
-        stateManager.setState(
-            PrismState::SCANNING);
+        if (buttonManager.entryJustPressed())
+        {
+            currentAction =
+                AttendanceAction::ENTRY;
+
+            stateManager.setState(
+                PrismState::WAIT_FOR_FINGER);
+        }
+
+        if (buttonManager.exitJustPressed())
+        {
+            currentAction =
+                AttendanceAction::EXIT;
+
+            stateManager.setState(
+                PrismState::WAIT_FOR_FINGER);
+        }
 
         break;
 
-    case PrismState::SCANNING:
+    case PrismState::WAIT_FOR_FINGER:
     {
+        prismDisplay.showScanning();
+
         currentFinger =
             fingerprint.authenticate();
 
@@ -93,42 +132,60 @@ void loop()
             Serial.println(currentFinger.id);
 
             stateManager.setState(
-                PrismState::PROCESSING);
+                PrismState::VERIFYING);
         }
         else
         {
             stateManager.setState(
-                PrismState::READY);
+                PrismState::WAIT_FOR_FINGER);
         }
 
         break;
     }
 
-    case PrismState::PROCESSING:
-
-        if (
+    case PrismState::VERIFYING:
+    {
+        AttendanceResponse response =
             attendanceClient.sendAttendance(
-                currentFinger.id))
+                currentFinger.id);
+
+        if (response.success)
         {
+            prismDisplay.showSuccess(
+                response.message);
+
+            delay(2000);
+
             stateManager.setState(
                 PrismState::SUCCESS);
         }
         else
         {
+            prismDisplay.showError(
+                response.message);
+
+            delay(2000);
+
             stateManager.setState(
                 PrismState::ERROR);
         }
 
+        Serial.println(response.message);
+
         break;
+    }
 
     case PrismState::SUCCESS:
 
-        Serial.println("Attendance Recorded!");
+        stateManager.setState(
+            PrismState::IDLE);
 
-        delay(2000);
+        break;
+
+    case PrismState::ERROR:
 
         stateManager.setState(
-            PrismState::READY);
+            PrismState::IDLE);
 
         break;
 
