@@ -1,25 +1,22 @@
 #include "WiFiManager.h"
 
-const char* SSID = "Shubham352";
-const char* PASSWORD = "12341234";
-
-void WiFiManager::begin()
+void WiFiManager::begin(
+    const char* ssid,
+    const char* password
+)
 {
-    Serial.println();
-    Serial.println("Connecting to WiFi...");
+    WiFi.begin(ssid, password);
 
-    WiFi.begin(SSID, PASSWORD);
+    Serial.print("Connecting to WiFi");
 
-   while (WiFi.status() != WL_CONNECTED)
-{
-    Serial.print("Status: ");
-    Serial.println(WiFi.status());
-
-    delay(1000);
-}
+    while (WiFi.status() != WL_CONNECTED)
+    {
+        delay(500);
+        Serial.print(".");
+    }
 
     Serial.println();
-    Serial.println("WiFi Connected!");
+    Serial.println("WiFi Connected");
 
     Serial.print("IP Address : ");
     Serial.println(WiFi.localIP());

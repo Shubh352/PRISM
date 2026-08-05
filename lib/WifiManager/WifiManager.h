@@ -6,9 +6,14 @@
 class WiFiManager
 {
 public:
-    void begin();
+
+    void begin(
+        const char* ssid,
+        const char* password
+    );
 
     bool isConnected();
+
 };
 
 #endif

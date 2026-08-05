@@ -14,3 +14,5 @@ prism.db
 .vscode/
 
 .idea/
+
+lib/Config/Config.h

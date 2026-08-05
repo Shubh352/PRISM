@@ -1,4 +1,4 @@
-#include "Fingerprint.h"
+#include "FingerprintManager.h"
 
 #include <HardwareSerial.h>
 #include <Adafruit_Fingerprint.h>

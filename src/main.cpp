@@ -1,162 +1,138 @@
 #include <Arduino.h>
-#include "Fingerprint.h"
-#include "Menu.h"
-#include "Attendance.h"
+#include "FingerprintManager.h"
+#include <Wire.h>
+#include "StateManager.h"
+#include "PrismDisplay.h"
+#include "RTCManager.h"
 #include "WiFiManager.h"
-#include "BackendClient.h"
+#include "AttendanceClient.h"
+#include "Config.h"
 
+PrismDisplay prismDisplay;
 Fingerprint fingerprint;
-Menu menu;
-Attendance attendance;
+RTCManager rtc;
+StateManager stateManager;
+FingerResult currentFinger;
 WiFiManager wifiManager;
-BackendClient backendClient;
+AttendanceClient attendanceClient;
 
 void setup()
 {
-  Serial.begin(115200);
-  wifiManager.begin();
+    Serial.begin(115200);
+    delay(1000);
 
-  fingerprint.begin();
+    Serial.println("START");
 
-  attendance.begin();
+    Wire.begin(21, 22);
 
-  if (fingerprint.verifySensor())
-  {
-    Serial.println("Fingerprint Sensor Connected!");
-  }
-  else
-  {
-    Serial.println("Fingerprint Sensor NOT Found!");
-
-    while (true)
+    if (!prismDisplay.begin())
     {
-      delay(100);
+        Serial.println("OLED FAILED");
+        while (true)
+            ;
     }
-  }
+
+    Serial.println("OLED OK");
+
+    prismDisplay.showBootScreen();
+
+    if (!rtc.begin())
+    {
+        Serial.println("RTC FAILED");
+        while (true)
+            ;
+    }
+
+    Serial.println("RTC OK");
+
+    fingerprint.begin();
+
+    if (!fingerprint.verifySensor())
+    {
+        Serial.println("Fingerprint FAILED");
+
+        while (true)
+            ;
+    }
+
+    Serial.println("Fingerprint OK");
+
+    wifiManager.begin(
+        WIFI_SSID,
+        WIFI_PASSWORD);
+
+    delay(2000);
+
+    stateManager.setState(PrismState::READY);
 }
 
 void loop()
 {
-  int choice = menu.run();
-
-  switch (choice)
-  {
-  case 1:
-  {
-    Serial.print("Enter ID (1-127): ");
-
-    while (!Serial.available())
-      ;
-
-    int id = Serial.parseInt();
-    Serial.readStringUntil('\n');
-
-    if (fingerprint.enrollFinger(id))
+    switch (stateManager.getState())
     {
-      Serial.println("Enrollment Successful!");
-    }
-    else
+    case PrismState::READY:
+
+        prismDisplay.showClock(
+            rtc.now());
+
+        delay(5000);
+
+        stateManager.setState(
+            PrismState::SCANNING);
+
+        break;
+
+    case PrismState::SCANNING:
     {
-      Serial.println("Enrollment Failed!");
-    }
+        currentFinger =
+            fingerprint.authenticate();
 
-    break;
-  }
-
-  case 2:
-  {
-    Serial.println();
-    Serial.println("=================================");
-    Serial.println("ATTENDANCE MODE");
-    Serial.println("Press 'q' to Exit");
-    Serial.println("=================================");
-
-    bool waitingMessageShown = false;
-
-    while (true)
-    {
-      if (Serial.available())
-      {
-        char c = Serial.read();
-
-        if (c == 'q' || c == 'Q')
+        if (currentFinger.matched)
         {
-          Serial.println("Leaving Attendance Mode...");
-          while (Serial.available())
-          {
-            Serial.read();
-          }
-          break;
+            Serial.print("Matched ID : ");
+            Serial.println(currentFinger.id);
+
+            stateManager.setState(
+                PrismState::PROCESSING);
         }
-      }
+        else
+        {
+            stateManager.setState(
+                PrismState::READY);
+        }
 
-      if (!waitingMessageShown)
-      {
-        Serial.println("Waiting for finger...");
-        waitingMessageShown = true;
-      }
-
-      FingerResult result = fingerprint.authenticate();
-
-      if (!result.matched)
-      {
-        delay(50);
-        continue;
-      }
-
-      waitingMessageShown = false;
-
-      backendClient.sendAttendance(result.id);
-
-      Serial.println("Remove Finger...");
-
-      fingerprint.waitForFingerRemoval();
-
-      Serial.println("Finger Removed.");
-
-      Serial.println();
-      Serial.println("Ready for Next Student");
-      Serial.println();
+        break;
     }
 
-    break;
-  }
+    case PrismState::PROCESSING:
 
-  case 3:
-  {
-    Serial.print("Enter Fingerprint ID to Delete (1-127): ");
+        if (
+            attendanceClient.sendAttendance(
+                currentFinger.id))
+        {
+            stateManager.setState(
+                PrismState::SUCCESS);
+        }
+        else
+        {
+            stateManager.setState(
+                PrismState::ERROR);
+        }
 
-    while (!Serial.available())
-      ;
+        break;
 
-    int id = Serial.parseInt();
-    Serial.readStringUntil('\n');
+    case PrismState::SUCCESS:
 
-    if (fingerprint.deleteFinger(id))
-    {
-      Serial.println();
-      Serial.println("Fingerprint Deleted Successfully!");
+        Serial.println("Attendance Recorded!");
 
-      Serial.print("Templates = ");
-      Serial.println(fingerprint.getTemplateCount());
+        delay(2000);
+
+        stateManager.setState(
+            PrismState::READY);
+
+        break;
+
+    default:
+        break;
     }
-    else
-    {
-      Serial.println();
-      Serial.println("Failed to Delete Fingerprint!");
-    }
-
-    break;
-  }
-  case 4:
-    Serial.print("Templates = ");
-    Serial.println(fingerprint.getTemplateCount());
-    break;
-
-  default:
-    Serial.println("Invalid Choice");
-    break;
-  }
-
-  delay(300);
 }
