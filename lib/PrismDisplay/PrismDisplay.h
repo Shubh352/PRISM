@@ -15,7 +15,8 @@ public:
     void showClock(
         const DateTime &now);
 
-    void showScanning();
+    void showScanning(
+        const String &mode);
 
     void showSuccess(
         const String &message);

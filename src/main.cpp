@@ -9,6 +9,7 @@
 #include "Config.h"
 #include "ButtonManager.h"
 #include "AttendanceAction.h"
+#include "BuzzerManager.h"
 
 PrismDisplay prismDisplay;
 Fingerprint fingerprint;
@@ -18,8 +19,10 @@ FingerResult currentFinger;
 WiFiManager wifiManager;
 AttendanceClient attendanceClient;
 ButtonManager buttonManager;
+
 AttendanceAction currentAction =
     AttendanceAction::ENTRY;
+BuzzerManager buzzer;
 
 unsigned long lastClockUpdate = 0;
 
@@ -32,6 +35,7 @@ void setup()
 
     Wire.begin(21, 22);
     buttonManager.begin();
+    buzzer.begin();
 
     if (!prismDisplay.begin())
     {
@@ -71,22 +75,21 @@ void setup()
         WIFI_PASSWORD);
 
     stateManager.setState(PrismState::IDLE);
+
+    buzzer.successBeep();
+
+    delay(300);
+
+    buzzer.errorBeep();
+
+    delay(300);
+
+    buzzer.scanFailBeep();
 }
 
 void loop()
 {
 
-    // if (buttonManager.entryJustPressed())
-    // {
-    //     Serial.println("ENTRY");
-    // }
-
-    // if (buttonManager.exitJustPressed())
-    // {
-    //     Serial.println("EXIT");
-    // }
-
-    delay(500);
     switch (stateManager.getState())
     {
     case PrismState::IDLE:
@@ -101,6 +104,7 @@ void loop()
 
         if (buttonManager.entryJustPressed())
         {
+
             currentAction =
                 AttendanceAction::ENTRY;
 
@@ -110,6 +114,7 @@ void loop()
 
         if (buttonManager.exitJustPressed())
         {
+
             currentAction =
                 AttendanceAction::EXIT;
 
@@ -121,7 +126,14 @@ void loop()
 
     case PrismState::WAIT_FOR_FINGER:
     {
-        prismDisplay.showScanning();
+        if (currentAction == AttendanceAction::ENTRY)
+        {
+            prismDisplay.showScanning("ENTRY");
+        }
+        else
+        {
+            prismDisplay.showScanning("EXIT");
+        }
 
         currentFinger =
             fingerprint.authenticate();
@@ -136,6 +148,11 @@ void loop()
         }
         else
         {
+            if (currentFinger.fingerDetected)
+            {
+                buzzer.scanFailBeep();
+            }
+
             stateManager.setState(
                 PrismState::WAIT_FOR_FINGER);
         }
@@ -147,13 +164,14 @@ void loop()
     {
         AttendanceResponse response =
             attendanceClient.sendAttendance(
-                currentFinger.id);
+                currentFinger.id,
+                currentAction);
 
         if (response.success)
         {
             prismDisplay.showSuccess(
                 response.message);
-
+            buzzer.successBeep();
             delay(2000);
 
             stateManager.setState(
@@ -161,6 +179,7 @@ void loop()
         }
         else
         {
+            buzzer.errorBeep();
             prismDisplay.showError(
                 response.message);
 

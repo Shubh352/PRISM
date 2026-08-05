@@ -5,15 +5,15 @@
 
 struct FingerResult
 {
-    bool matched;
-    uint16_t id;
-    uint16_t confidence;
+    bool fingerDetected = false;
+    bool matched = false;
+    uint16_t id = 0;
+    uint16_t confidence = 0;
 };
 
 class Fingerprint
 {
 public:
-
     Fingerprint();
 
     void begin();

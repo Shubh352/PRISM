@@ -46,10 +46,6 @@ FingerResult Fingerprint::authenticate()
 {
     FingerResult result;
 
-    result.matched = false;
-    result.id = 0;
-    result.confidence = 0;
-
     const int MAX_ATTEMPTS = 5;
 
     for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++)
@@ -71,6 +67,8 @@ FingerResult Fingerprint::authenticate()
             Serial.println(p);
             return result;
         }
+
+        result.fingerDetected = true;
 
         Serial.println("Finger Detected!");
 

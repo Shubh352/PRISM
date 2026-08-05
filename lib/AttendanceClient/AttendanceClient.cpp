@@ -7,7 +7,8 @@
 #include <ArduinoJson.h>
 
 AttendanceResponse AttendanceClient::sendAttendance(
-    uint16_t fingerprintId)
+    uint16_t fingerprintId,
+    AttendanceAction action)
 {
     AttendanceResponse response;
     if (WiFi.status() != WL_CONNECTED)
@@ -28,13 +29,20 @@ AttendanceResponse AttendanceClient::sendAttendance(
         "Content-Type",
         "application/json");
 
+    String actionString =
+        (action == AttendanceAction::ENTRY)
+            ? "MORNING_ENTRY"
+            : "PUNCH_OUT";
+
     String body =
         "{"
         "\"fingerprint_id\":" +
         String(fingerprintId) +
         ","
-        "\"device_code\":\"ESP32-FPNS-001\","
-        "\"action\":\"MORNING_ENTRY\""
+        "\"device_code\":\"" DEVICE_CODE "\","
+        "\"action\":\"" +
+        actionString +
+        "\""
         "}";
 
     int responseCode =

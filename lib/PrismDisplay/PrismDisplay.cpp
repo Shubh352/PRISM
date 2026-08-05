@@ -80,16 +80,17 @@ void PrismDisplay::showClock(
     display.display();
 }
 
-void PrismDisplay::showScanning()
+void PrismDisplay::showScanning(
+    const String &mode)
 {
     display.clearDisplay();
 
     display.setTextSize(2);
-    display.setCursor(8, 18);
-    display.println("SCAN");
+    display.setCursor(0, 0);
+    display.println(mode);
 
     display.setTextSize(1);
-    display.setCursor(18, 45);
+    display.setCursor(0, 32);
     display.println("Place Finger");
 
     display.display();
