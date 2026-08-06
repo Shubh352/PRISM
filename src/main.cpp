@@ -10,6 +10,10 @@
 #include "ButtonManager.h"
 #include "AttendanceAction.h"
 #include "BuzzerManager.h"
+#include "SDCardManager.h"
+#include "AttendanceIdManager.h"
+#include "AttendanceStorage.h"
+#include "SyncManager.h"
 
 PrismDisplay prismDisplay;
 Fingerprint fingerprint;
@@ -23,6 +27,13 @@ ButtonManager buttonManager;
 AttendanceAction currentAction =
     AttendanceAction::ENTRY;
 BuzzerManager buzzer;
+
+AttendanceIdManager attendanceIdManager;
+SDCardManager sdCardManager;
+AttendanceStorage attendanceStorage;
+SyncManager syncManager(
+    attendanceStorage,
+    attendanceClient);
 
 unsigned long lastClockUpdate = 0;
 
@@ -70,18 +81,47 @@ void setup()
 
     Serial.println("Fingerprint OK");
 
+    if (!sdCardManager.begin())
+    {
+        Serial.println("SD FAILED");
+
+        while (true)
+            ;
+    }
+
+    Serial.println("SD OK");
+
+    if (!attendanceStorage.begin())
+    {
+        Serial.println("Attendance Storage FAILED");
+
+        while (true)
+            ;
+    }
+
+    Serial.println("Attendance Storage OK");
+
+    if (!attendanceIdManager.begin())
+    {
+        Serial.println("AttendanceIdManager FAILED");
+
+        while (true)
+            ;
+    }
+
+    Serial.println("AttendanceIdManager OK");
+
     wifiManager.begin(
         WIFI_SSID,
         WIFI_PASSWORD);
 
     stateManager.setState(PrismState::IDLE);
 
+    // Test buzzer
     buzzer.successBeep();
-
     delay(300);
 
     buzzer.errorBeep();
-
     delay(300);
 
     buzzer.scanFailBeep();
@@ -162,16 +202,30 @@ void loop()
 
     case PrismState::VERIFYING:
     {
+        AttendanceRecord record;
+
+        record.recordId =
+            attendanceIdManager.generateId();
+
+        record.timestamp =
+            rtc.now();
+
+        record.fingerprintId =
+            currentFinger.id;
+
+        record.action =
+            currentAction;
+
         AttendanceResponse response =
-            attendanceClient.sendAttendance(
-                currentFinger.id,
-                currentAction);
+            syncManager.processAttendance(record);
 
         if (response.success)
         {
             prismDisplay.showSuccess(
                 response.message);
+
             buzzer.successBeep();
+
             delay(2000);
 
             stateManager.setState(
@@ -179,9 +233,10 @@ void loop()
         }
         else
         {
-            buzzer.errorBeep();
             prismDisplay.showError(
                 response.message);
+
+            buzzer.errorBeep();
 
             delay(2000);
 
