@@ -65,7 +65,13 @@ void setup()
         while (true)
             ;
     }
-    rtc.adjustToCompileTime();
+
+    if (rtc.lostPower())
+    {
+        Serial.println("RTC Lost Power");
+
+        rtc.adjustToCompileTime();
+    }
 
     Serial.println("RTC OK");
 
@@ -114,6 +120,13 @@ void setup()
     wifiManager.begin(
         WIFI_SSID,
         WIFI_PASSWORD);
+
+    if (wifiManager.isConnected())
+    {
+        rtc.syncWithNTP();
+    }
+
+    syncManager.syncPending(); //temp
 
     stateManager.setState(PrismState::IDLE);
 

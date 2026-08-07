@@ -24,11 +24,9 @@ attendance_service = AttendanceService()
 def create_attendance(attendance: AttendanceCreate, db: Session = Depends(get_db)):
 
     return attendance_service.process_scan(
-        db,
-        attendance.fingerprint_id,
-        attendance.device_code,
-        attendance.action,
-    )
+    db,
+    attendance,
+)
 
 
 @router.get("/attendance", response_model=list[AttendanceDetailsResponse])

@@ -8,11 +8,12 @@
 class AttendanceStorage
 {
 public:
-
     bool begin();
 
     bool saveAttendance(
-        const AttendanceRecord &record);
+        const AttendanceRecord &record,
+        const String &syncStatus,
+        const String &backendResult);
 
     bool savePending(
         const AttendanceRecord &record);
@@ -21,7 +22,6 @@ public:
         const String &recordId);
 
 private:
-
     bool writeHeaderIfNeeded(
         const char *path);
 

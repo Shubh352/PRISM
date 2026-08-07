@@ -17,15 +17,13 @@ class AttendanceService:
     def process_scan(
         self,
         db: Session,
-        fingerprint_id: int,
-        device_code: str,
-        action: ScanEvent,
+        attendance_request,
     ):
 
         # Step 1 - Validate Device
         device = self.validator.validate_device(
             db,
-            device_code,
+            attendance_request.device_code,
         )
 
         if device is None:
@@ -37,7 +35,7 @@ class AttendanceService:
         # Step 2 - Validate User
         user = self.validator.validate_user(
             db,
-            fingerprint_id,
+            attendance_request.fingerprint_id,
         )
 
         if user is None:
@@ -61,6 +59,7 @@ class AttendanceService:
             user.department_id,
             user.semester,
             academic_session.id,
+            attendance_request.scan_timestamp,
         )
 
         if schedule is None:
@@ -73,6 +72,7 @@ class AttendanceService:
         current_session = self.scheduler.get_current_schedule_session(
             db,
             schedule.id,
+            attendance_request.scan_timestamp,
         )
 
         if current_session is None:
@@ -87,5 +87,6 @@ class AttendanceService:
             user=user,
             device=device,
             session=current_session,
-            action=action,
+            action=attendance_request.action,
+            scan_timestamp=attendance_request.scan_timestamp,
         )

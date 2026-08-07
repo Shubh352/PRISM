@@ -7,14 +7,14 @@
 #include <ArduinoJson.h>
 
 AttendanceResponse AttendanceClient::sendAttendance(
-    uint16_t fingerprintId,
-    AttendanceAction action)
+    const AttendanceRecord &record)
 {
     AttendanceResponse response;
     if (WiFi.status() != WL_CONNECTED)
     {
         Serial.println("WiFi Not Connected");
         response.success = false;
+        response.delivered = false;
         response.message = "WiFi Not Connected";
 
         return response;
@@ -30,20 +30,30 @@ AttendanceResponse AttendanceClient::sendAttendance(
         "application/json");
 
     String actionString =
-        (action == AttendanceAction::ENTRY)
+        (record.action == AttendanceAction::ENTRY)
             ? "MORNING_ENTRY"
             : "PUNCH_OUT";
 
     String body =
         "{"
+        "\"record_id\":\"" +
+        record.recordId +
+        "\","
         "\"fingerprint_id\":" +
-        String(fingerprintId) +
+        String(record.fingerprintId) +
         ","
         "\"device_code\":\"" DEVICE_CODE "\","
         "\"action\":\"" +
         actionString +
+        "\","
+        "\"scan_timestamp\":\"" +
+        record.timestamp.timestamp(DateTime::TIMESTAMP_FULL) +
         "\""
         "}";
+
+    Serial.println("========== JSON ==========");
+    Serial.println(body);
+    Serial.println("==========================");
 
     int responseCode =
         http.POST(body);
@@ -69,16 +79,22 @@ AttendanceResponse AttendanceClient::sendAttendance(
 
             response.message =
                 doc["message"].as<String>();
+
+            response.delivered = true;
         }
         else
         {
             response.success = false;
+            response.delivered = false;
             response.message = "Invalid JSON";
         }
     }
     else
     {
         response.success = false;
+
+        response.delivered = false;
+
         response.message = "HTTP Request Failed";
     }
 

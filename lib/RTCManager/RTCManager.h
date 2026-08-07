@@ -12,6 +12,7 @@ public:
 
     void adjustToCompileTime();
     bool lostPower();
+    bool syncWithNTP();
 
 private:
     RTC_DS3231 rtc;

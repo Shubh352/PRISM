@@ -2,10 +2,18 @@ from pydantic import BaseModel
 from datetime import date, datetime
 from app.enums.scan_event import ScanEvent
 
+
 class AttendanceCreate(BaseModel):
+
+    record_id: str
+
     fingerprint_id: int
+
     device_code: str
+
     action: ScanEvent
+
+    scan_timestamp: datetime
 
 class AttendanceResponse(BaseModel):
     id: int
@@ -21,6 +29,7 @@ class AttendanceResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
 
 class AttendanceDetailsResponse(BaseModel):
     name: str

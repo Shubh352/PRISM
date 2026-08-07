@@ -11,25 +11,29 @@ from app.enums.sync_status import SyncStatus
 class AttendanceRules:
 
     def process(
-    self,
-    db: Session,
-    user,
-    device,
-    session,
-    action,
+        self,
+        db: Session,
+        user,
+        device,
+        session,
+        action,
+        scan_timestamp,
     ):
 
         attendance = (
             db.query(Attendance)
             .filter(
                 Attendance.user_id == user.id,
-                Attendance.attendance_date == date.today(),
+                Attendance.attendance_date == scan_timestamp.date(),
             )
             .first()
         )
 
         if attendance is None:
-            attendance = Attendance(user_id=user.id)
+            attendance = Attendance(
+                user_id=user.id,
+                attendance_date=scan_timestamp.date(),
+            )
             db.add(attendance)
             db.commit()
             db.refresh(attendance)
@@ -41,7 +45,13 @@ class AttendanceRules:
             return {"success": False, "message": "Afternoon Attendance Window Closed"}
 
         if action == ScanEvent.MORNING_ENTRY:
-            return self._morning_entry(db, attendance, device, user)
+            return self._morning_entry(
+                db,
+                attendance,
+                device,
+                user,
+                scan_timestamp,
+            )
 
         if action == ScanEvent.AFTERNOON_ENTRY:
             return self._afternoon_entry(db, attendance, device, user)
@@ -52,11 +62,12 @@ class AttendanceRules:
         return {"success": False, "message": "Invalid Action"}
 
     def _morning_entry(
-    self,
-    db: Session,
-    attendance,
-    device,
-    user,
+        self,
+        db,
+        attendance,
+        device,
+        user,
+        scan_timestamp,
     ):
 
         if attendance.entry_1_time is not None:
@@ -65,7 +76,7 @@ class AttendanceRules:
                 "message": "Morning Attendance Already Recorded",
             }
 
-        attendance.entry_1_time = datetime.now()
+        attendance.entry_1_time = scan_timestamp
 
         db.commit()
         db.refresh(attendance)
@@ -75,7 +86,7 @@ class AttendanceRules:
             attendance,
             device,
             user,
-            ScanEvent.MORNING_ENTRY,   # change accordingly
+            ScanEvent.MORNING_ENTRY,  # change accordingly
         )
 
         return {
@@ -85,11 +96,12 @@ class AttendanceRules:
         }
 
     def _afternoon_entry(
-    self,
-    db: Session,
-    attendance,
-    device,
-    user,
+        self,
+        db: Session,
+        attendance,
+        device,
+        user,
+        scan_timestamp,
     ):
 
         if attendance.entry_2_time is not None:
@@ -98,7 +110,7 @@ class AttendanceRules:
                 "message": "Afternoon Attendance Already Recorded",
             }
 
-        attendance.entry_2_time = datetime.now()
+        attendance.entry_2_time = scan_timestamp
 
         db.commit()
         db.refresh(attendance)
@@ -109,7 +121,7 @@ class AttendanceRules:
             device,
             user,
             # _afternoon_entry()
-            ScanEvent.AFTERNOON_ENTRY
+            ScanEvent.AFTERNOON_ENTRY,
         )
 
         return {
@@ -119,11 +131,12 @@ class AttendanceRules:
         }
 
     def _punch_out(
-    self,
-    db: Session,
-    attendance,
-    device,
-    user,
+        self,
+        db: Session,
+        attendance,
+        device,
+        user,
+        scan_timestamp,
     ):
 
         if attendance.punch_out_time is not None:
@@ -132,7 +145,7 @@ class AttendanceRules:
                 "message": "Punch Out Already Recorded",
             }
 
-        attendance.punch_out_time = datetime.now()
+        attendance.punch_out_time = scan_timestamp
 
         db.commit()
         db.refresh(attendance)
@@ -143,7 +156,7 @@ class AttendanceRules:
             device,
             user,
             # _punch_out()
-            ScanEvent.PUNCH_OUT
+            ScanEvent.PUNCH_OUT,
         )
 
         return {

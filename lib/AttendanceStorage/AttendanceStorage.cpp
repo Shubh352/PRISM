@@ -6,7 +6,7 @@
 
 bool AttendanceStorage::begin()
 {
-    return writeHeaderIfNeeded("/PRISM/attendance.csv") &&
+    return writeHeaderIfNeeded("/PRISM/attendance_log.csv") &&
            writeHeaderIfNeeded("/PRISM/pending.csv");
 }
 
@@ -27,7 +27,7 @@ bool AttendanceStorage::writeHeaderIfNeeded(
     }
 
     file.println(
-        "record_id,timestamp,fingerprint_id,action,device_code");
+        "record_id,timestamp,fingerprint_id,action,device_code,sync_status,backend_result");
 
     file.close();
 
@@ -51,11 +51,13 @@ String AttendanceStorage::actionToString(
 }
 
 bool AttendanceStorage::saveAttendance(
-    const AttendanceRecord &record)
+    const AttendanceRecord &record,
+    const String &syncStatus,
+    const String &backendResult)
 {
     File file =
         SD.open(
-            "/PRISM/attendance.csv",
+            "/PRISM/attendance_log.csv",
             FILE_APPEND);
 
     if (!file)
@@ -75,7 +77,13 @@ bool AttendanceStorage::saveAttendance(
     file.print(actionToString(record.action));
     file.print(",");
 
-    file.println(DEVICE_CODE);
+    file.print(DEVICE_CODE);
+    file.print(",");
+
+    file.print(syncStatus);
+    file.print(",");
+
+    file.println(backendResult);
 
     file.close();
 

@@ -8,19 +8,22 @@
 class SyncManager
 {
 public:
-
     SyncManager(
-        AttendanceStorage& storage,
-        AttendanceClient& client);
+        AttendanceStorage &storage,
+        AttendanceClient &client);
 
     AttendanceResponse processAttendance(
-        const AttendanceRecord& record);
+        const AttendanceRecord &record);
+
+    void syncPending();
 
 private:
+    AttendanceStorage &storage;
 
-    AttendanceStorage& storage;
+    AttendanceClient &client;
 
-    AttendanceClient& client;
+    AttendanceRecord parseRecord(
+    const String& line);
 };
 
 #endif

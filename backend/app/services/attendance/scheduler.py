@@ -29,11 +29,10 @@ class AttendanceScheduler:
         department_id: int,
         semester: int,
         academic_session_id: int,
+        scan_timestamp,
     ):
 
-        today = DayOfWeek[
-            datetime.now().strftime("%A").upper()
-        ]
+        today = DayOfWeek[scan_timestamp.strftime("%A").upper()]
 
         return (
             db.query(Schedule)
@@ -50,9 +49,15 @@ class AttendanceScheduler:
         self,
         db: Session,
         schedule_id: int,
+        scan_timestamp,
     ):
 
-        current_time = datetime.now().time()
+        current_time = scan_timestamp.time()
+
+        print("\n========== SCHEDULER ==========")
+        print("Scan Timestamp :", scan_timestamp)
+        print("Current Time   :", current_time)
+        print("===============================\n")
 
         sessions = (
             db.query(ScheduleSession)
@@ -76,7 +81,16 @@ class AttendanceScheduler:
                 minutes=session.attendance_window_minutes,
             )
 
+            print(
+                f"Session {session.session_number} | "
+                f"Start: {session.start_time} | "
+                f"End: {end_datetime.time()} | "
+                f"Window: {session.attendance_window_minutes} mins"
+            )
+
             if session.start_time <= current_time <= end_datetime.time():
+                print("✅ MATCHED SESSION:", session.session_number)
                 return session
 
+        print("❌ NO SESSION MATCHED")
         return None

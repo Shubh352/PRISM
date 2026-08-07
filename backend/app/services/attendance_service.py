@@ -7,44 +7,45 @@ from app.enums.scan_event import ScanEvent
 
 class AttendanceService:
 
-    def process_scan(
-        self,
-        db: Session,
-        fingerprint_id: int,
-        action,
-    ):
-        user = self._find_user(
-            db,
-            fingerprint_id,
-        )
+  def process_scan(
+    self,
+    db: Session,
+    attendance_request,
+):
+    user = self._find_user(
+        db,
+        attendance_request.fingerprint_id,
+    )
 
-        if user is None:
-            return {
-                "success": False,
-                "message": "Fingerprint Not Registered",
-            }
-        attendance = self._get_today_record(
+    if user is None:
+        return {
+            "success": False,
+            "message": "Fingerprint Not Registered",
+        }
+
+    attendance = self._get_today_record(
+        db,
+        user.id,
+    )
+
+    if attendance is None:
+        attendance = self._create_attendance(
             db,
             user.id,
         )
-        if attendance is None:
-            attendance = self._create_attendance(
-                db,
-                user.id,
-            )
 
-        if action == ScanEvent.MORNING_ENTRY:
-            return self._process_morning_entry(
-                db,
-                attendance,
-                user,
-            )
+    if attendance_request.action == ScanEvent.MORNING_ENTRY:
+        return self._process_morning_entry(
+            db,
+            attendance,
+            user,
+        )
 
-        elif action == ScanEvent.AFTERNOON_ENTRY:
-            pass
+    elif attendance_request.action == ScanEvent.AFTERNOON_ENTRY:
+        pass
 
-        elif action == ScanEvent.PUNCH_OUT:
-            pass
+    elif attendance_request.action == ScanEvent.PUNCH_OUT:
+        pass
 
     def _find_user(
         self,

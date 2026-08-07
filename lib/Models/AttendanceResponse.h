@@ -5,7 +5,10 @@
 
 struct AttendanceResponse
 {
-    bool success = false;
+    bool success;
+
+    bool delivered;
+
     String message;
 };
 
