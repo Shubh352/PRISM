@@ -15,6 +15,7 @@ class AttendanceCreate(BaseModel):
 
     scan_timestamp: datetime
 
+
 class AttendanceResponse(BaseModel):
     id: int
     user_id: int
@@ -32,6 +33,9 @@ class AttendanceResponse(BaseModel):
 
 
 class AttendanceDetailsResponse(BaseModel):
+
+    id: int
+
     name: str
 
     roll_number: str
@@ -47,3 +51,11 @@ class AttendanceDetailsResponse(BaseModel):
     entry_2_time: datetime | None
 
     punch_out_time: datetime | None
+
+    morning_status: str
+
+    afternoon_status: str
+
+    punch_out_status: str
+
+    status: str

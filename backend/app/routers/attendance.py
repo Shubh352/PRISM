@@ -24,9 +24,9 @@ attendance_service = AttendanceService()
 def create_attendance(attendance: AttendanceCreate, db: Session = Depends(get_db)):
 
     return attendance_service.process_scan(
-    db,
-    attendance,
-)
+        db,
+        attendance,
+    )
 
 
 @router.get("/attendance", response_model=list[AttendanceDetailsResponse])
@@ -38,8 +38,49 @@ def get_attendance(db: Session = Depends(get_db)):
 
     for attendance in records:
 
+        # ---------- Overall Status ----------
+
+        if (
+            attendance.entry_1_time
+            and attendance.entry_2_time
+            and attendance.punch_out_time
+        ):
+            status = "Present"
+
+        elif (
+            attendance.entry_1_time
+            or attendance.entry_2_time
+            or attendance.punch_out_time
+        ):
+            status = "Partial"
+
+        else:
+            status = "Absent"
+
+        # ---------- Morning ----------
+
+        if attendance.entry_1_time:
+            morning_status = "Present"
+        else:
+            morning_status = "-"
+
+        # ---------- Afternoon ----------
+
+        if attendance.entry_2_time:
+            afternoon_status = "Present"
+        else:
+            afternoon_status = "-"
+
+        # ---------- Punch Out ----------
+
+        if attendance.punch_out_time:
+            punch_out_status = "Done"
+        else:
+            punch_out_status = "-"
+
         response.append(
             AttendanceDetailsResponse(
+                id=attendance.id,
                 name=attendance.user.name,
                 roll_number=attendance.user.roll_number,
                 department=attendance.user.department.department_name,
@@ -48,6 +89,10 @@ def get_attendance(db: Session = Depends(get_db)):
                 entry_1_time=attendance.entry_1_time,
                 entry_2_time=attendance.entry_2_time,
                 punch_out_time=attendance.punch_out_time,
+                morning_status=morning_status,
+                afternoon_status=afternoon_status,
+                punch_out_status=punch_out_status,
+                status=status,
             )
         )
 

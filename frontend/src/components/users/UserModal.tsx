@@ -18,7 +18,7 @@ type UserModalProps = {
     isOpen: boolean;
     onClose: () => void;
     onUserAdded: () => void;
-    user?: User;
+    user: User | null;
 };
 
 export default function UserModal({
@@ -111,6 +111,10 @@ export default function UserModal({
 
         } catch (error) {
             console.error(error);
+
+            toast.error(
+                "Something went wrong."
+            );
         }
     }
 
@@ -123,7 +127,7 @@ export default function UserModal({
             <div className="w-full max-w-lg rounded-xl bg-white p-8 shadow-xl">
 
                 <h2 className="mb-6 text-2xl font-bold">
-                    Add New User
+                    {user ? "Edit User" : "Add New User"}
                 </h2>
 
                 <div className="space-y-4">
@@ -196,7 +200,7 @@ export default function UserModal({
                         onClick={handleSave}
                         className="rounded-lg bg-blue-600 px-5 py-2 text-white hover:bg-blue-700"
                     >
-                        Save
+                        {user ? "Update" : "Save"}
                     </button>
                 </div>
 

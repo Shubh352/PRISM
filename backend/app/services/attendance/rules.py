@@ -54,10 +54,10 @@ class AttendanceRules:
             )
 
         if action == ScanEvent.AFTERNOON_ENTRY:
-            return self._afternoon_entry(db, attendance, device, user)
+            return self._afternoon_entry(db, attendance, device, user, scan_timestamp)
 
         if action == ScanEvent.PUNCH_OUT:
-            return self._punch_out(db, attendance, device, user)
+            return self._punch_out(db, attendance, device, user, scan_timestamp)
 
         return {"success": False, "message": "Invalid Action"}
 
