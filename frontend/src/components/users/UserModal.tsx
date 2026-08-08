@@ -9,9 +9,15 @@ type User = {
     name: string;
     roll_number: string;
     department: string;
+    department_id: number;
     semester: number;
     fingerprint_id: number;
     user_type: string;
+};
+
+type Department = {
+    id: number;
+    department_name: string;
 };
 
 type UserModalProps = {
@@ -30,23 +36,40 @@ export default function UserModal({
 
     const [name, setName] = useState("");
     const [rollNumber, setRollNumber] = useState("");
-    const [department, setDepartment] = useState("");
+    const [departmentId, setDepartmentId] = useState<number | "">("");
+    const [departments, setDepartments] = useState<Department[]>([]);
     const [semester, setSemester] = useState<number | "">("");
     const [fingerprintId, setFingerprintId] = useState<number | "">("");
     const [userType, setUserType] = useState("Student");
 
     useEffect(() => {
+        async function fetchDepartments() {
+            try {
+                const response = await api.get("/departments");
+                setDepartments(response.data);
+            } catch (error) {
+                console.error(error);
+                toast.error("Failed to load departments.");
+            }
+        }
+
+        if (isOpen) {
+            fetchDepartments();
+        }
+    }, [isOpen]);
+
+    useEffect(() => {
         if (user) {
             setName(user.name);
             setRollNumber(user.roll_number);
-            setDepartment(user.department);
+            setDepartmentId(user.department_id);
             setSemester(user.semester);
             setFingerprintId(user.fingerprint_id);
             setUserType(user.user_type);
         } else {
             setName("");
             setRollNumber("");
-            setDepartment("");
+            setDepartmentId("");
             setSemester("");
             setFingerprintId("");
             setUserType("Student");
@@ -54,10 +77,11 @@ export default function UserModal({
     }, [user]);
 
     async function handleSave() {
+
         if (
             !name.trim() ||
             !rollNumber.trim() ||
-            !department.trim()
+            departmentId === ""
         ) {
             toast.error("Please fill all required fields.");
             return;
@@ -72,44 +96,46 @@ export default function UserModal({
             toast.error("Fingerprint ID must be greater than 0.");
             return;
         }
+
         try {
-            let response;
+
+            const payload = {
+                name,
+                roll_number: rollNumber,
+                department_id: departmentId,
+                semester,
+                fingerprint_id: fingerprintId,
+                user_type: userType,
+            };
 
             if (user) {
-                response = await api.put(`/users/${user.id}`, {
-                    name,
-                    roll_number: rollNumber,
-                    department,
-                    semester,
-                    fingerprint_id: fingerprintId,
-                    user_type: userType,
-                });
 
-                toast.success("User updated successfully!");
+                await api.put(
+                    `/users/${user.id}`,
+                    payload
+                );
+
+                toast.success(
+                    "User updated successfully!"
+                );
+
             } else {
-                response = await api.post("/users", {
-                    name,
-                    roll_number: rollNumber,
-                    department,
-                    semester,
-                    fingerprint_id: fingerprintId,
-                    user_type: userType,
-                });
 
-                toast.success("User added successfully!");
+                await api.post(
+                    "/users",
+                    payload
+                );
+
+                toast.success(
+                    "User added successfully!"
+                );
             }
 
             onUserAdded();
             onClose();
 
-            setName("");
-            setRollNumber("");
-            setDepartment("");
-            setSemester("");
-            setFingerprintId("");
-            setUserType("Student");
-
         } catch (error) {
+
             console.error(error);
 
             toast.error(
@@ -137,7 +163,9 @@ export default function UserModal({
                         placeholder="Name"
                         className="w-full rounded-lg border p-3"
                         value={name}
-                        onChange={(e) => setName(e.target.value)}
+                        onChange={(e) =>
+                            setName(e.target.value)
+                        }
                     />
 
                     <input
@@ -145,16 +173,35 @@ export default function UserModal({
                         placeholder="Roll Number"
                         className="w-full rounded-lg border p-3"
                         value={rollNumber}
-                        onChange={(e) => setRollNumber(e.target.value)}
+                        onChange={(e) =>
+                            setRollNumber(e.target.value)
+                        }
                     />
 
-                    <input
-                        type="text"
-                        placeholder="Department"
+                    <select
                         className="w-full rounded-lg border p-3"
-                        value={department}
-                        onChange={(e) => setDepartment(e.target.value)}
-                    />
+                        value={departmentId}
+                        onChange={(e) =>
+                            setDepartmentId(
+                                e.target.value === ""
+                                    ? ""
+                                    : Number(e.target.value)
+                            )
+                        }
+                    >
+                        <option value="">
+                            Select Department
+                        </option>
+
+                        {departments.map((department) => (
+                            <option
+                                key={department.id}
+                                value={department.id}
+                            >
+                                {department.department_name}
+                            </option>
+                        ))}
+                    </select>
 
                     <input
                         type="number"
@@ -162,7 +209,11 @@ export default function UserModal({
                         className="w-full rounded-lg border p-3"
                         value={semester}
                         onChange={(e) =>
-                            setSemester(e.target.value === "" ? "" : Number(e.target.value))
+                            setSemester(
+                                e.target.value === ""
+                                    ? ""
+                                    : Number(e.target.value)
+                            )
                         }
                     />
 
@@ -172,17 +223,25 @@ export default function UserModal({
                         className="w-full rounded-lg border p-3"
                         value={fingerprintId}
                         onChange={(e) =>
-                            setFingerprintId(e.target.value === "" ? "" : Number(e.target.value))
+                            setFingerprintId(
+                                e.target.value === ""
+                                    ? ""
+                                    : Number(e.target.value)
+                            )
                         }
                     />
 
                     <select
                         className="w-full rounded-lg border p-3"
                         value={userType}
-                        onChange={(e) => setUserType(e.target.value)}
+                        onChange={(e) =>
+                            setUserType(e.target.value)
+                        }
                     >
                         <option>Student</option>
                         <option>Faculty</option>
+                        <option>Admin</option>
+                        <option>PhD</option>
                     </select>
 
                 </div>
@@ -202,6 +261,7 @@ export default function UserModal({
                     >
                         {user ? "Update" : "Save"}
                     </button>
+
                 </div>
 
             </div>

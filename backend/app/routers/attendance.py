@@ -1,19 +1,18 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from app.dependencies import get_db
+
+from app.dependencies import get_db, require_role
+from app.enums.auth_role import AuthRole
+
 from app.schemas.attendance import (
     AttendanceCreate,
     AttendanceResponse,
     AttendanceDetailsResponse,
 )
+
 from app.services.attendance.attendance_service import AttendanceService
 from app.models.attendance import Attendance
-from app.models.device import Device
 
-from app.models.user import User
-from app.models.schedule import Schedule
-from app.models.academic_session import AcademicSession
-from app.models.schedule_session import ScheduleSession
 
 router = APIRouter()
 
@@ -21,16 +20,29 @@ attendance_service = AttendanceService()
 
 
 @router.post("/attendance")
-def create_attendance(attendance: AttendanceCreate, db: Session = Depends(get_db)):
-
+def create_attendance(
+    attendance: AttendanceCreate,
+    db: Session = Depends(get_db),
+    current_account=Depends(
+        require_role(AuthRole.ADMIN)
+    ),
+):
     return attendance_service.process_scan(
         db,
         attendance,
     )
 
 
-@router.get("/attendance", response_model=list[AttendanceDetailsResponse])
-def get_attendance(db: Session = Depends(get_db)):
+@router.get(
+    "/attendance",
+    response_model=list[AttendanceDetailsResponse],
+)
+def get_attendance(
+    db: Session = Depends(get_db),
+    current_account=Depends(
+        require_role(AuthRole.ADMIN, AuthRole.HOD)
+    ),
+):
 
     records = db.query(Attendance).all()
 

@@ -10,6 +10,7 @@ type User = {
     name: string;
     roll_number: string;
     department: string;
+    department_id: number;
     semester: number;
     fingerprint_id: number;
     user_type: string;

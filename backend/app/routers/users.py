@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.database.database import SessionLocal
-from app.dependencies import get_db
+from app.dependencies import get_db, require_role
+from app.enums.auth_role import AuthRole
 from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
+
 
 router = APIRouter()
 
@@ -12,31 +13,34 @@ router = APIRouter()
 @router.post("/users")
 def create_user(
     user: UserCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_account=Depends(
+        require_role(AuthRole.ADMIN)
+    ),
 ):
-
-
     db_user = User(
-        name=user.name,
-        roll_number=user.roll_number,
-        fingerprint_id=user.fingerprint_id,
-        department=user.department,
-        semester=user.semester,
-        user_type=user.user_type
-    )
+    name=user.name,
+    roll_number=user.roll_number,
+    fingerprint_id=user.fingerprint_id,
+    department_id=user.department_id,
+    semester=user.semester,
+    user_type=user.user_type,
+)
 
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
 
-   
-
     return db_user
 
 
 @router.get("/users")
-def get_users(db: Session = Depends(get_db)):
-
+def get_users(
+    db: Session = Depends(get_db),
+    current_account=Depends(
+        require_role(AuthRole.ADMIN, AuthRole.HOD)
+    ),
+):
     users = db.query(User).all()
 
     return users
@@ -45,9 +49,11 @@ def get_users(db: Session = Depends(get_db)):
 @router.get("/users/{user_id}")
 def get_user(
     user_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_account=Depends(
+        require_role(AuthRole.ADMIN, AuthRole.HOD)
+    ),
 ):
-
     user = db.query(User).filter(User.id == user_id).first()
 
     if user is None:
@@ -60,9 +66,11 @@ def get_user(
 def update_user(
     user_id: int,
     updated_user: UserUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_account=Depends(
+        require_role(AuthRole.ADMIN)
+    ),
 ):
-
     user = db.query(User).filter(User.id == user_id).first()
 
     if user is None:
@@ -71,7 +79,7 @@ def update_user(
     user.name = updated_user.name
     user.roll_number = updated_user.roll_number
     user.fingerprint_id = updated_user.fingerprint_id
-    user.department = updated_user.department
+    user.department_id = updated_user.department_id
     user.semester = updated_user.semester
     user.user_type = updated_user.user_type
 
@@ -84,9 +92,11 @@ def update_user(
 @router.delete("/users/{user_id}")
 def delete_user(
     user_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_account=Depends(
+        require_role(AuthRole.ADMIN)
+    ),
 ):
-
     user = db.query(User).filter(User.id == user_id).first()
 
     if user is None:
