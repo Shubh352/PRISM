@@ -14,7 +14,7 @@ import {
     Settings,
     ArrowRight,
 } from "lucide-react";
-
+import { getCurrentRole } from "@/lib/auth";
 import Link from "next/link";
 
 type DashboardSummary = {
@@ -65,6 +65,12 @@ export default function Dashboard() {
     const [recentAttendance, setRecentAttendance] =
         useState<RecentAttendance[]>([]);
 
+    const [role, setRole] = useState<string | null>(null);
+
+    useEffect(() => {
+        setRole(getCurrentRole());
+    }, []);
+
     useEffect(() => {
 
         async function fetchDashboard() {
@@ -110,7 +116,7 @@ export default function Dashboard() {
             <div className="mb-10 rounded-2xl bg-gradient-to-r from-blue-700 to-indigo-700 p-8 text-white shadow-lg">
 
                 <p className="text-lg opacity-90">
-                    👋 Welcome Back, Admin
+                    👋 Welcome Back, {role ?? "User"}
                 </p>
 
                 <h1 className="mt-2 text-5xl font-extrabold tracking-wide">
@@ -299,11 +305,14 @@ export default function Dashboard() {
                                 <div>
 
                                     <h3 className="font-semibold">
-                                        Manage Users
+                                        {role === "Admin" ? "Manage Users" : "Users"}
                                     </h3>
 
                                     <p className="text-sm text-gray-500">
-                                        Add, edit or remove users.
+                                        {role === "Admin"
+                                            ? "Add, edit or remove users."
+                                            : "View registered users."
+                                        }
                                     </p>
 
                                 </div>

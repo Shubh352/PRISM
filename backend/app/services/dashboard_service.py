@@ -5,7 +5,6 @@ from sqlalchemy.orm import Session
 from app.models.attendance import Attendance
 from app.models.user import User
 from app.models.device_log import DeviceLog
-from app.models.attendance import Attendance
 
 
 class DashboardService:
@@ -86,7 +85,7 @@ class DashboardService:
                 {
                     "name": user.name,
                     "roll_number": user.roll_number,
-                    "department": user.department,
+                    "department": user.department.department_name,
                     "semester": user.semester,
                     "event": log.event.value,
                     "time": (scan_time.strftime("%I:%M %p") if scan_time else None),

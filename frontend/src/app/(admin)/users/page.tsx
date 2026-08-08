@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import api from "@/lib/api";
 import UserModal from "@/components/users/UserModal";
 import toast from "react-hot-toast";
+import { isAdmin } from "@/lib/auth";
 
 type User = {
     id: number;
@@ -22,6 +23,11 @@ export default function UsersPage() {
     const [showModal, setShowModal] = useState(false);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+    const [admin, setAdmin] = useState(false);
+
+    useEffect(() => {
+        setAdmin(isAdmin());
+    }, []);
 
     async function fetchUsers() {
         setLoading(true);
@@ -79,16 +85,17 @@ export default function UsersPage() {
                         Manage registered users
                     </p>
                 </div>
-
-                <button
-                    onClick={() => {
-                        setSelectedUser(null);
-                        setShowModal(true);
-                    }}
-                    className="rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white transition hover:bg-blue-700"
-                >
-                    + Add User
-                </button>
+                {admin && (
+                    <button
+                        onClick={() => {
+                            setSelectedUser(null);
+                            setShowModal(true);
+                        }}
+                        className="rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white transition hover:bg-blue-700"
+                    >
+                        + Add User
+                    </button>
+                )}
             </div>
 
             {/* Search */}
@@ -174,24 +181,30 @@ export default function UsersPage() {
                                         </td>
 
                                         <td className="flex gap-2 px-4 py-3">
-                                            <button
-                                                onClick={() => {
-                                                    setSelectedUser(user);
-                                                    setShowModal(true);
-                                                }}
-                                                className="rounded bg-yellow-500 px-3 py-1 text-white hover:bg-yellow-600"
-                                            >
-                                                Edit
-                                            </button>
 
-                                            <button
-                                                onClick={() =>
-                                                    handleDelete(user)
-                                                }
-                                                className="rounded bg-red-600 px-3 py-1 text-white hover:bg-red-700"
-                                            >
-                                                Delete
-                                            </button>
+                                            {admin && (
+                                                <>
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedUser(user);
+                                                            setShowModal(true);
+                                                        }}
+                                                        className="rounded bg-yellow-500 px-3 py-1 text-white hover:bg-yellow-600"
+                                                    >
+                                                        Edit
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() =>
+                                                            handleDelete(user)
+                                                        }
+                                                        className="rounded bg-red-600 px-3 py-1 text-white hover:bg-red-600"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </>
+                                            )}
+
                                         </td>
                                     </tr>
                                 ))

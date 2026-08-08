@@ -1,27 +1,51 @@
+"use client";
+
+import Link from "next/link";
+
 export default function Sidebar() {
     return (
-        <aside className="w-64 bg-white border-r shadow-sm p-6">
+        <aside className="w-64 min-h-screen border-r bg-white p-6">
 
-            <h2 className="text-lg font-bold mb-6">
+            <h2 className="mb-6 text-lg font-bold">
                 Navigation
             </h2>
 
-            <ul className="space-y-4">
+            <ul className="space-y-2">
 
-                <li className="cursor-pointer hover:text-blue-600">
-                    Dashboard
+                <li>
+                    <Link
+                        href="/dashboard"
+                        className="block rounded-lg p-3 hover:bg-blue-50 hover:text-blue-600"
+                    >
+                        Dashboard
+                    </Link>
                 </li>
 
-                <li className="cursor-pointer hover:text-blue-600">
-                    Users
+                <li>
+                    <Link
+                        href="/users"
+                        className="block rounded-lg p-3 hover:bg-blue-50 hover:text-blue-600"
+                    >
+                        Users
+                    </Link>
                 </li>
 
-                <li className="cursor-pointer hover:text-blue-600">
-                    Attendance
+                <li>
+                    <Link
+                        href="/attendance"
+                        className="block rounded-lg p-3 hover:bg-blue-50 hover:text-blue-600"
+                    >
+                        Attendance
+                    </Link>
                 </li>
 
-                <li className="cursor-pointer hover:text-blue-600">
-                    Reports
+                <li>
+                    <Link
+                        href="/reports"
+                        className="block rounded-lg p-3 hover:bg-blue-50 hover:text-blue-600"
+                    >
+                        Reports
+                    </Link>
                 </li>
 
             </ul>
