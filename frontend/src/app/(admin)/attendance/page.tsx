@@ -1,25 +1,16 @@
 "use client";
 
 import { useState } from "react";
-
-import StatusBadge from "@/components/shared/StatusBadge";
-
-import Modal from "@/components/shared/Modal";
 import AttendanceTable from "@/components/attendance/AttendanceTable";
 import AttendanceDetailsModal from "@/components/attendance/AttendanceDetailsModal";
 import AttendanceSummary from "@/components/attendance/AttendanceSummary";
 import useAttendance from "@/hooks/useAttendance";
 import AttendanceFilters from "@/components/attendance/AttendanceFilters";
-import {
-    User,
-    Building2,
-    GraduationCap,
-    Calendar,
-    Clock,
-} from "lucide-react";
-
 import type { AttendanceRecord } from "@/types/attendance";
-
+import {
+    PageHeader,
+    Section,
+} from "@/components/shared";
 
 export default function AttendancePage() {
 
@@ -99,35 +90,6 @@ export default function AttendancePage() {
     const totalCount =
         filteredAttendance.length;
 
-
-    function formatDate(date: string) {
-
-        return new Date(date).toLocaleDateString(
-            "en-IN",
-            {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-            }
-        );
-
-    }
-
-    function formatTime(time: string | null) {
-
-        if (!time) return "—";
-
-        return new Date(time).toLocaleTimeString(
-            "en-IN",
-            {
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: true,
-            }
-        );
-
-    }
-
     if (loading) {
 
         return (
@@ -145,14 +107,10 @@ export default function AttendancePage() {
     return (
 
         <>
-            <h1 className="text-4xl font-bold">
-                Attendance Management
-            </h1>
-
-            <p className="mt-2 text-gray-600">
-                View and manage attendance records.
-            </p>
-
+            <PageHeader
+                title="Attendance Management"
+                subtitle="View and manage attendance records."
+            />
             <AttendanceSummary
                 present={presentCount}
                 partial={partialCount}
@@ -187,7 +145,7 @@ export default function AttendancePage() {
                 }}
             />
 
-            <div className="mt-6 rounded-2xl bg-white p-6 shadow">
+            <Section className="mt-6">
 
                 {attendance.length === 0 ? (
 
@@ -218,7 +176,7 @@ export default function AttendancePage() {
                     />
                 )}
 
-            </div>
+            </Section>
 
             <AttendanceDetailsModal
                 isOpen={isModalOpen}

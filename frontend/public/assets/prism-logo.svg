@@ -1,0 +1,38 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+
+    <defs>
+
+        <linearGradient id="leftFace" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#8DD9FF"></stop>
+            <stop offset="100%" stop-color="#3B82F6"></stop>
+        </linearGradient>
+
+        <linearGradient id="rightFace" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#2563EB"></stop>
+            <stop offset="100%" stop-color="#1D4ED8"></stop>
+        </linearGradient>
+
+        <linearGradient id="bottomFace" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#1E40AF"></stop>
+            <stop offset="100%" stop-color="#1E3A8A"></stop>
+        </linearGradient>
+
+    </defs>
+
+    <!-- Left Face -->
+
+    <polygon points="256,60 110,360 256,360" fill="url(#leftFace)"></polygon>
+
+    <!-- Right Face -->
+
+    <polygon points="256,60 402,360 256,360" fill="url(#rightFace)"></polygon>
+
+    <!-- Bottom Face -->
+
+    <polygon points="110,360 256,460 402,360 256,360" fill="url(#bottomFace)"></polygon>
+
+    <!-- Highlight -->
+
+    <polyline points="256,60 256,360" stroke="#DDF4FF" stroke-width="4" opacity="0.7"></polyline>
+
+</svg>

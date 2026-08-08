@@ -1,3 +1,12 @@
+import StatCard from "@/components/shared/StatCard";
+
+import {
+    CheckCircle,
+    AlertTriangle,
+    XCircle,
+    ClipboardList,
+} from "lucide-react";
+
 type AttendanceSummaryProps = {
     present: number;
     partial: number;
@@ -16,30 +25,33 @@ export default function AttendanceSummary({
 
         <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
 
-            <SummaryCard
+            <StatCard
                 title="Present"
                 value={present}
                 color="text-green-600"
+                icon={<CheckCircle size={28} />}
             />
 
-            <SummaryCard
+            <StatCard
                 title="Partial"
                 value={partial}
                 color="text-yellow-500"
+                icon={<AlertTriangle size={28} />}
             />
 
-            <SummaryCard
+            <StatCard
                 title="Absent"
                 value={absent}
                 color="text-red-600"
+                icon={<XCircle size={28} />}
             />
 
-            <SummaryCard
+            <StatCard
                 title="Total Records"
                 value={total}
                 color="text-blue-600"
+                icon={<ClipboardList size={28} />}
             />
-
         </div>
 
     );
@@ -52,30 +64,3 @@ type SummaryCardProps = {
     color: string;
 };
 
-function SummaryCard({
-    title,
-    value,
-    color,
-}: SummaryCardProps) {
-
-    return (
-
-        <div className="rounded-2xl bg-white p-6 shadow">
-
-            <p className="text-sm text-gray-500">
-
-                {title}
-
-            </p>
-
-            <h2 className={`mt-2 text-4xl font-bold ${color}`}>
-
-                {value}
-
-            </h2>
-
-        </div>
-
-    );
-
-}

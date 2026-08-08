@@ -1,3 +1,4 @@
+from app.models.account import Account
 from app.models.department import Department
 from app.models.user import User
 from app.models.attendance import Attendance
