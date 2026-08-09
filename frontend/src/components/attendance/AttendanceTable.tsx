@@ -6,13 +6,20 @@ type AttendanceTableProps = {
     onView: (attendance: AttendanceRecord) => void;
 };
 
+function formatDate(date: string) {
+    return new Date(date).toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+    });
+}
+
 export default function AttendanceTable({
     attendance,
     onView,
 }: AttendanceTableProps) {
 
     return (
-
         <div className="mt-8 overflow-hidden rounded-2xl bg-white shadow">
 
             <table className="min-w-full">
@@ -21,19 +28,37 @@ export default function AttendanceTable({
 
                     <tr>
 
-                        <th className="px-4 py-3 text-left">Roll No</th>
+                        <th className="px-4 py-3 text-left">
+                            Date
+                        </th>
 
-                        <th className="px-4 py-3 text-left">Name</th>
+                        <th className="px-4 py-3 text-left">
+                            Roll No
+                        </th>
 
-                        <th className="px-4 py-3 text-left">Morning</th>
+                        <th className="px-4 py-3 text-left">
+                            Name
+                        </th>
 
-                        <th className="px-4 py-3 text-left">Afternoon</th>
+                        <th className="px-4 py-3 text-left">
+                            Morning
+                        </th>
 
-                        <th className="px-4 py-3 text-left">Punch Out</th>
+                        <th className="px-4 py-3 text-left">
+                            Afternoon
+                        </th>
 
-                        <th className="px-4 py-3 text-left">Status</th>
+                        <th className="px-4 py-3 text-left">
+                            Punch Out
+                        </th>
 
-                        <th className="px-4 py-3 text-left">Action</th>
+                        <th className="px-4 py-3 text-left">
+                            Status
+                        </th>
+
+                        <th className="px-4 py-3 text-left">
+                            Action
+                        </th>
 
                     </tr>
 
@@ -47,6 +72,10 @@ export default function AttendanceTable({
                             key={record.id}
                             className="border-b hover:bg-gray-50"
                         >
+
+                            <td className="px-4 py-3">
+                                {formatDate(record.attendance_date)}
+                            </td>
 
                             <td className="px-4 py-3">
                                 {record.roll_number}
@@ -94,7 +123,5 @@ export default function AttendanceTable({
             </table>
 
         </div>
-
     );
-
 }

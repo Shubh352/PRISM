@@ -14,6 +14,16 @@ public:
 
     bool isConnected();
 
+    void maintainConnection();
+
+private:
+
+    const char* savedSSID = nullptr;
+    const char* savedPassword = nullptr;
+
+    unsigned long lastReconnectAttempt = 0;
+
+    static const unsigned long RECONNECT_INTERVAL = 10000;
 };
 
 #endif

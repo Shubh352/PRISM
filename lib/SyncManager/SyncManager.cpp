@@ -12,7 +12,6 @@ AttendanceResponse SyncManager::processAttendance(
     const AttendanceRecord &record)
 {
     AttendanceResponse response;
-
     // Step 1
     if (!storage.savePending(record))
     {
@@ -28,9 +27,14 @@ AttendanceResponse SyncManager::processAttendance(
     // Step 3
     if (response.delivered)
     {
+        String syncStatus =
+            response.success
+                ? "SYNCED"
+                : "REJECTED";
+
         if (storage.saveAttendance(
                 record,
-                "SYNCED",
+                syncStatus,
                 response.success
                     ? "SUCCESS"
                     : response.message))
@@ -44,6 +48,7 @@ AttendanceResponse SyncManager::processAttendance(
 
 void SyncManager::syncPending()
 {
+
     File file =
         SD.open("/PRISM/pending.csv", FILE_READ);
 
@@ -84,9 +89,14 @@ void SyncManager::syncPending()
 
         // Backend processed request
 
+        String syncStatus =
+            response.success
+                ? "SYNCED"
+                : "REJECTED";
+
         if (storage.saveAttendance(
                 record,
-                "SYNCED",
+                syncStatus,
                 response.success
                     ? "SUCCESS"
                     : response.message))
@@ -94,7 +104,15 @@ void SyncManager::syncPending()
             storage.removePending(
                 record.recordId);
 
-            Serial.print("Synced : ");
+            if (response.success)
+            {
+                Serial.print("Synced : ");
+            }
+            else
+            {
+                Serial.print("Rejected : ");
+            }
+
             Serial.println(record.recordId);
         }
     }

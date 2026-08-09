@@ -127,3 +127,21 @@ void PrismDisplay::showError(
 
     display.display();
 }
+
+void PrismDisplay::showPending()
+{
+    display.clearDisplay();
+
+    display.setTextSize(2);
+    display.setCursor(10, 5);
+    display.println("SAVED");
+
+    display.setTextSize(1);
+    display.setCursor(0, 35);
+    display.println("Attendance saved");
+
+    display.setCursor(0, 50);
+    display.println("Sync pending...");
+
+    display.display();
+}

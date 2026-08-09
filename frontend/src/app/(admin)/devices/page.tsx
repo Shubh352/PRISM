@@ -23,6 +23,8 @@ export default function DevicesPage() {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [admin, setAdmin] = useState(false);
+    const [selectedDevice, setSelectedDevice] =
+        useState<Device | null>(null);
 
     useEffect(() => {
         setAdmin(isAdmin());
@@ -54,6 +56,36 @@ export default function DevicesPage() {
 
             setLoading(false);
 
+        }
+    }
+
+    async function handleDelete(device: Device) {
+
+        const confirmed = window.confirm(
+            `Delete ${device.device_name}?`
+        );
+
+        if (!confirmed) return;
+
+        try {
+
+            await api.delete(
+                `/devices/${device.id}`
+            );
+
+            toast.success(
+                "Device deleted successfully!"
+            );
+
+            fetchDevices();
+
+        } catch (error) {
+
+            console.error(error);
+
+            toast.error(
+                "Failed to delete device."
+            );
         }
     }
 
@@ -91,7 +123,10 @@ export default function DevicesPage() {
 
                 {admin && (
                     <button
-                        onClick={() => setShowModal(true)}
+                        onClick={() => {
+                            setSelectedDevice(null);
+                            setShowModal(true);
+                        }}
                         className="rounded-lg bg-purple-600 px-5 py-3 font-semibold text-white transition hover:bg-purple-700"
                     >
                         + Add Device
@@ -159,6 +194,12 @@ export default function DevicesPage() {
                                     Status
                                 </th>
 
+                                {admin && (
+                                    <th className="px-4 py-3 text-left">
+                                        Actions
+                                    </th>
+                                )}
+
                             </tr>
 
                         </thead>
@@ -192,6 +233,29 @@ export default function DevicesPage() {
                                         {getDeviceStatus(device)}
                                     </td>
 
+                                    {admin && (
+                                        <td className="px-4 py-3">
+
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedDevice(device);
+                                                    setShowModal(true);
+                                                }}
+                                                className="rounded-lg bg-yellow-500 px-3 py-2 text-sm text-white hover:bg-yellow-600"
+                                            >
+                                                Edit
+                                            </button>
+
+                                            <button
+                                                onClick={() => handleDelete(device)}
+                                                className="rounded-lg bg-red-600 px-3 py-2 text-sm text-white hover:bg-red-700"
+                                            >
+                                                Delete
+                                            </button>
+
+                                        </td>
+                                    )}
+
                                 </tr>
 
                             ))}
@@ -206,8 +270,12 @@ export default function DevicesPage() {
 
             <DeviceModal
                 isOpen={showModal}
-                onClose={() => setShowModal(false)}
-                onDeviceAdded={fetchDevices}
+                onClose={() => {
+                    setShowModal(false);
+                    setSelectedDevice(null);
+                }}
+                onDeviceSaved={fetchDevices}
+                device={selectedDevice}
             />
 
         </>

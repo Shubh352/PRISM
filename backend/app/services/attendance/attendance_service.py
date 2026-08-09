@@ -45,6 +45,18 @@ class AttendanceService:
             }
 
         # Step 3 - Active Academic Session
+
+        if attendance_request.action == ScanEvent.PUNCH_OUT:
+
+            return self.rules.process(
+                db=db,
+                user=user,
+                device=device,
+                session=None,
+                action=ScanEvent.PUNCH_OUT,
+                scan_timestamp=attendance_request.scan_timestamp,
+            )
+
         academic_session = self.scheduler.get_active_academic_session(db)
 
         if academic_session is None:
@@ -54,6 +66,11 @@ class AttendanceService:
             }
 
         # Step 4 - Today's Schedule
+        # Step 4 - Punch Out
+
+        # Punch Out does not require a schedule or attendance window.
+
+        # Step 5 - Today's Schedule
         schedule = self.scheduler.get_today_schedule(
             db,
             user.department_id,
@@ -68,7 +85,7 @@ class AttendanceService:
                 "message": "No Schedule Found For Today",
             }
 
-        # Step 5 - Current Session
+        # Step 6 - Current Session
         current_session = self.scheduler.get_current_schedule_session(
             db,
             schedule.id,
@@ -81,12 +98,20 @@ class AttendanceService:
                 "message": "Attendance Window Closed",
             }
 
-        # Step 6 - Attendance Rules (next step)
+        # Step 7 - Determine actual attendance event
+
+        action = attendance_request.action
+
+        if action == ScanEvent.MORNING_ENTRY and current_session.session_number == 2:
+            action = ScanEvent.AFTERNOON_ENTRY
+
+        # Step 8 - Attendance Rules
+
         return self.rules.process(
             db=db,
             user=user,
             device=device,
             session=current_session,
-            action=attendance_request.action,
+            action=action,
             scan_timestamp=attendance_request.scan_timestamp,
         )

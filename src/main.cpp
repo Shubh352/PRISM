@@ -36,6 +36,10 @@ SyncManager syncManager(
     attendanceClient);
 
 unsigned long lastClockUpdate = 0;
+bool wasWifiConnected = false;
+unsigned long lastPendingSync = 0;
+
+const unsigned long PENDING_SYNC_INTERVAL = 15000;
 
 void setup()
 {
@@ -121,12 +125,15 @@ void setup()
         WIFI_SSID,
         WIFI_PASSWORD);
 
-    if (wifiManager.isConnected())
+    wasWifiConnected =
+        wifiManager.isConnected();
+
+    if (wasWifiConnected)
     {
         rtc.syncWithNTP();
-    }
 
-    syncManager.syncPending(); //temp
+        syncManager.syncPending();
+    }
 
     stateManager.setState(PrismState::IDLE);
 
@@ -142,6 +149,35 @@ void setup()
 
 void loop()
 {
+
+    wifiManager.maintainConnection();
+
+    bool wifiConnected =
+        wifiManager.isConnected();
+
+    if (
+        wifiConnected &&
+        !wasWifiConnected)
+    {
+        Serial.println(
+            "WiFi Reconnected");
+
+        rtc.syncWithNTP();
+
+        syncManager.syncPending();
+    }
+
+    wasWifiConnected =
+        wifiConnected;
+
+    if (
+        wifiConnected &&
+        millis() - lastPendingSync >= PENDING_SYNC_INTERVAL)
+    {
+        syncManager.syncPending();
+
+        lastPendingSync = millis();
+    }
 
     switch (stateManager.getState())
     {
@@ -234,6 +270,7 @@ void loop()
 
         if (response.success)
         {
+            // Backend accepted the attendance
             prismDisplay.showSuccess(
                 response.message);
 
@@ -244,8 +281,26 @@ void loop()
             stateManager.setState(
                 PrismState::SUCCESS);
         }
+        else if (!response.delivered)
+        {
+            // Backend could not be reached.
+            // Attendance has been saved locally
+            // and will be synchronized later.
+
+            prismDisplay.showPending();
+
+            buzzer.successBeep();
+
+            delay(2000);
+
+            stateManager.setState(
+                PrismState::SUCCESS);
+        }
         else
         {
+            // Backend received the request
+            // but rejected the attendance.
+
             prismDisplay.showError(
                 response.message);
 

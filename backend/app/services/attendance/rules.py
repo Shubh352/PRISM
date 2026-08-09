@@ -20,6 +20,12 @@ class AttendanceRules:
         scan_timestamp,
     ):
 
+        if action == ScanEvent.MORNING_ENTRY and session.session_number != 1:
+            return {"success": False, "message": "Morning Attendance Window Closed"}
+
+        if action == ScanEvent.AFTERNOON_ENTRY and session.session_number != 2:
+            return {"success": False, "message": "Afternoon Attendance Window Closed"}
+
         attendance = (
             db.query(Attendance)
             .filter(
@@ -28,21 +34,6 @@ class AttendanceRules:
             )
             .first()
         )
-
-        if attendance is None:
-            attendance = Attendance(
-                user_id=user.id,
-                attendance_date=scan_timestamp.date(),
-            )
-            db.add(attendance)
-            db.commit()
-            db.refresh(attendance)
-
-        if action == ScanEvent.MORNING_ENTRY and session.session_number != 1:
-            return {"success": False, "message": "Morning Attendance Window Closed"}
-
-        if action == ScanEvent.AFTERNOON_ENTRY and session.session_number != 2:
-            return {"success": False, "message": "Afternoon Attendance Window Closed"}
 
         if action == ScanEvent.MORNING_ENTRY:
             return self._morning_entry(
@@ -69,6 +60,16 @@ class AttendanceRules:
         user,
         scan_timestamp,
     ):
+
+        if attendance is None:
+
+            attendance = Attendance(
+                user_id=user.id,
+                attendance_date=scan_timestamp.date(),
+            )
+
+            db.add(attendance)
+            db.flush()
 
         if attendance.entry_1_time is not None:
             return {
@@ -103,6 +104,16 @@ class AttendanceRules:
         user,
         scan_timestamp,
     ):
+
+        if attendance is None:
+
+            attendance = Attendance(
+                user_id=user.id,
+                attendance_date=scan_timestamp.date(),
+            )
+
+            db.add(attendance)
+            db.flush()
 
         if attendance.entry_2_time is not None:
             return {
@@ -139,6 +150,21 @@ class AttendanceRules:
         scan_timestamp,
     ):
 
+        # No attendance record exists
+        if attendance is None:
+            return {
+                "success": False,
+                "message": "Cannot Punch Out Without Attendance",
+            }
+
+        # Student must have at least one valid entry
+        if attendance.entry_1_time is None and attendance.entry_2_time is None:
+            return {
+                "success": False,
+                "message": "Cannot Punch Out Without Attendance",
+            }
+
+        # Punch out can only be recorded once
         if attendance.punch_out_time is not None:
             return {
                 "success": False,
@@ -155,7 +181,6 @@ class AttendanceRules:
             attendance,
             device,
             user,
-            # _punch_out()
             ScanEvent.PUNCH_OUT,
         )
 

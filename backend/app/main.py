@@ -14,6 +14,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routers import department
 from app.routers import auth
 from app.routers import devices
+from app.routers.schedule import router as schedule_router
+from app.routers.academic_session import router as academic_session_router
 # Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="PROJECT PRISM API", version="1.0.0")
@@ -35,6 +37,8 @@ app.include_router(dashboard.router)
 app.include_router(department.router)
 app.include_router(auth.router)
 app.include_router(devices.router)
+app.include_router(schedule_router)
+app.include_router(academic_session_router)
 
 @app.get("/")
 def home():

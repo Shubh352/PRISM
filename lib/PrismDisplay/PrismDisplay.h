@@ -23,6 +23,8 @@ public:
 
     void showError(
         const String &message);
+
+    void showPending();
 };
 
 #endif

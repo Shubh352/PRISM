@@ -13,7 +13,6 @@ from app.schemas.attendance import (
 from app.services.attendance.attendance_service import AttendanceService
 from app.models.attendance import Attendance
 
-
 router = APIRouter()
 
 attendance_service = AttendanceService()
@@ -23,9 +22,6 @@ attendance_service = AttendanceService()
 def create_attendance(
     attendance: AttendanceCreate,
     db: Session = Depends(get_db),
-    current_account=Depends(
-        require_role(AuthRole.ADMIN)
-    ),
 ):
     return attendance_service.process_scan(
         db,
@@ -39,9 +35,7 @@ def create_attendance(
 )
 def get_attendance(
     db: Session = Depends(get_db),
-    current_account=Depends(
-        require_role(AuthRole.ADMIN, AuthRole.HOD)
-    ),
+    current_account=Depends(require_role(AuthRole.ADMIN, AuthRole.HOD)),
 ):
 
     records = db.query(Attendance).all()

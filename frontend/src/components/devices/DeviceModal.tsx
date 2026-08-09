@@ -9,16 +9,29 @@ type Department = {
     department_name: string;
 };
 
+type Device = {
+    id: number;
+    device_name: string;
+    device_code: string;
+    department_id: number;
+    location: string;
+    firmware_version: string | null;
+    is_active: boolean;
+    last_seen: string | null;
+};
+
 type DeviceModalProps = {
     isOpen: boolean;
     onClose: () => void;
-    onDeviceAdded: () => void;
+    onDeviceSaved: () => void;
+    device: Device | null;
 };
 
 export default function DeviceModal({
     isOpen,
     onClose,
-    onDeviceAdded,
+    onDeviceSaved,
+    device,
 }: DeviceModalProps) {
 
     const [deviceName, setDeviceName] = useState("");
@@ -26,11 +39,36 @@ export default function DeviceModal({
     const [departmentId, setDepartmentId] = useState<number | "">("");
     const [location, setLocation] = useState("");
     const [firmwareVersion, setFirmwareVersion] = useState("");
-
+    const [isActive, setIsActive] = useState(true);
     const [departments, setDepartments] = useState<Department[]>([]);
     const [loadingDepartments, setLoadingDepartments] = useState(false);
     const [saving, setSaving] = useState(false);
 
+    useEffect(() => {
+
+        if (device) {
+
+            setDeviceName(device.device_name);
+            setDeviceCode(device.device_code);
+            setDepartmentId(device.department_id);
+            setLocation(device.location);
+            setFirmwareVersion(
+                device.firmware_version ?? ""
+            );
+            setIsActive(device.is_active);
+
+        } else {
+
+            setDeviceName("");
+            setDeviceCode("");
+            setDepartmentId("");
+            setLocation("");
+            setFirmwareVersion("");
+            setIsActive(true);
+
+        }
+
+    }, [device]);
 
     useEffect(() => {
 
@@ -74,6 +112,7 @@ export default function DeviceModal({
         setDepartmentId("");
         setLocation("");
         setFirmwareVersion("");
+        setIsActive(true);
 
     }
 
@@ -121,20 +160,37 @@ export default function DeviceModal({
 
         try {
 
-            await api.post("/devices", {
+            if (device) {
 
-                device_name: deviceName.trim(),
+                await api.put(`/devices/${device.id}`, {
+                    device_name: deviceName.trim(),
+                    device_code: deviceCode.trim(),
+                    department_id: departmentId,
+                    location: location.trim(),
+                    firmware_version:
+                        firmwareVersion.trim() || null,
+                    is_active: isActive,
+                });
 
-                device_code: deviceCode.trim(),
+                toast.success(
+                    "Device updated successfully!"
+                );
 
-                department_id: departmentId,
+            } else {
 
-                location: location.trim(),
+                await api.post("/devices", {
+                    device_name: deviceName.trim(),
+                    device_code: deviceCode.trim(),
+                    department_id: departmentId,
+                    location: location.trim(),
+                    firmware_version:
+                        firmwareVersion.trim() || null,
+                });
 
-                firmware_version:
-                    firmwareVersion.trim() || null,
-
-            });
+                toast.success(
+                    "Device added successfully!"
+                );
+            }
 
 
             toast.success(
@@ -143,7 +199,7 @@ export default function DeviceModal({
 
             resetForm();
 
-            onDeviceAdded();
+            onDeviceSaved();
 
             onClose();
 
@@ -177,7 +233,7 @@ export default function DeviceModal({
             <div className="w-full max-w-lg rounded-xl bg-white p-8 shadow-xl">
 
                 <h2 className="mb-6 text-2xl font-bold">
-                    Add New Device
+                    {device ? "Edit Device" : "Add New Device"}
                 </h2>
 
 
@@ -271,6 +327,23 @@ export default function DeviceModal({
                         }
                     />
 
+                    <label className="flex items-center gap-3">
+
+                        <input
+                            type="checkbox"
+                            checked={isActive}
+                            onChange={(e) =>
+                                setIsActive(e.target.checked)
+                            }
+                            className="h-4 w-4"
+                        />
+
+                        <span className="text-sm font-medium">
+                            Device Active
+                        </span>
+
+                    </label>
+
                 </div>
 
 
@@ -294,8 +367,11 @@ export default function DeviceModal({
                     >
                         {saving
                             ? "Saving..."
-                            : "Save"}
+                            : device
+                                ? "Update"
+                                : "Save"}
                     </button>
+
 
                 </div>
 
