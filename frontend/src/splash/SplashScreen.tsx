@@ -1,27 +1,14 @@
 "use client";
 
-import ParticleBackground from "./ParticleBackground";
-import PrismLogo from "./PrismLogo";
-import LightBeam from "./LightBeam";
+import { useRouter } from "next/navigation";
+import PrismSplash from "./PrismSplash";
 
 export default function SplashScreen() {
+    const router = useRouter();
 
     return (
-
-        <div className="fixed inset-0 flex items-center justify-center overflow-hidden bg-slate-950">
-
-            <ParticleBackground />
-
-            <LightBeam />
-
-            <div className="relative z-10">
-
-                <PrismLogo />
-
-            </div>
-
-        </div>
-
+        <PrismSplash
+            onComplete={() => router.replace("/login")}
+        />
     );
-
 }
