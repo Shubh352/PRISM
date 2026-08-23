@@ -77,11 +77,6 @@ export default function AttendancePage() {
             (record) => record.status === "Present"
         ).length;
 
-    const partialCount =
-        filteredAttendance.filter(
-            (record) => record.status === "Partial"
-        ).length;
-
     const absentCount =
         filteredAttendance.filter(
             (record) => record.status === "Absent"
@@ -113,7 +108,6 @@ export default function AttendancePage() {
             />
             <AttendanceSummary
                 present={presentCount}
-                partial={partialCount}
                 absent={absentCount}
                 total={totalCount}
             />

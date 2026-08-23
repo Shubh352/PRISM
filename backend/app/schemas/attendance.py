@@ -1,6 +1,6 @@
-from pydantic import BaseModel
 from datetime import date, datetime
-from app.enums.scan_event import ScanEvent
+
+from pydantic import BaseModel
 
 
 class AttendanceCreate(BaseModel):
@@ -11,22 +11,18 @@ class AttendanceCreate(BaseModel):
 
     device_code: str
 
-    action: ScanEvent
-
     scan_timestamp: datetime
 
 
 class AttendanceResponse(BaseModel):
+
     id: int
+
     user_id: int
 
     attendance_date: date
 
-    entry_1_time: datetime | None
-
-    entry_2_time: datetime | None
-
-    punch_out_time: datetime | None
+    punch_in_time: datetime | None
 
     class Config:
         from_attributes = True
@@ -46,16 +42,6 @@ class AttendanceDetailsResponse(BaseModel):
 
     attendance_date: date
 
-    entry_1_time: datetime | None
-
-    entry_2_time: datetime | None
-
-    punch_out_time: datetime | None
-
-    morning_status: str
-
-    afternoon_status: str
-
-    punch_out_status: str
+    punch_in_time: datetime | None
 
     status: str

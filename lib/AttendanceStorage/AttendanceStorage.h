@@ -8,6 +8,7 @@
 class AttendanceStorage
 {
 public:
+
     bool begin();
 
     bool saveAttendance(
@@ -22,11 +23,9 @@ public:
         const String &recordId);
 
 private:
+
     bool writeHeaderIfNeeded(
         const char *path);
-
-    String actionToString(
-        AttendanceAction action);
 };
 
 #endif

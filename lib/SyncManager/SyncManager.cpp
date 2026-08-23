@@ -125,41 +125,38 @@ AttendanceRecord SyncManager::parseRecord(
 {
     AttendanceRecord record;
 
-    int p1 = line.indexOf(',');
-    int p2 = line.indexOf(',', p1 + 1);
-    int p3 = line.indexOf(',', p2 + 1);
-    int p4 = line.indexOf(',', p3 + 1);
+    int p1 =
+        line.indexOf(',');
+
+    int p2 =
+        line.indexOf(
+            ',',
+            p1 + 1);
+
+    int p3 =
+        line.indexOf(
+            ',',
+            p2 + 1);
 
     record.recordId =
-        line.substring(0, p1);
+        line.substring(
+            0,
+            p1);
 
     String timestamp =
-        line.substring(p1 + 1, p2);
+        line.substring(
+            p1 + 1,
+            p2);
 
     record.timestamp =
-        DateTime(timestamp.c_str());
+        DateTime(
+            timestamp.c_str());
 
     record.fingerprintId =
         line.substring(
                 p2 + 1,
                 p3)
             .toInt();
-
-    String action =
-        line.substring(
-            p3 + 1,
-            p4);
-
-    if (action == "MORNING_ENTRY")
-    {
-        record.action =
-            AttendanceAction::ENTRY;
-    }
-    else
-    {
-        record.action =
-            AttendanceAction::EXIT;
-    }
 
     return record;
 }

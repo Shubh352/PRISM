@@ -32,42 +32,10 @@ type RecentAttendance = {
     roll_number: string;
     department: string;
     semester: number;
-    event: string;
-    time: string | null;
+    status: string;
+    punch_in_time: string | null;
 };
 
-// Explicit label + color map instead of `.replace("_", " ")`, which only
-// replaces the first underscore and does nothing about casing (it was
-// turning MORNING_ENTRY into "MORNING ENTRY", not "Morning Entry"). Any
-// event the backend adds later that isn't in this map still degrades
-// gracefully via the `default` branches below rather than crashing.
-const EVENT_META: Record<string, { label: string; badgeClass: string }> = {
-    MORNING_ENTRY: {
-        label: "Morning Entry",
-        badgeClass: "bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200",
-    },
-    AFTERNOON_ENTRY: {
-        label: "Afternoon Entry",
-        badgeClass: "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-200",
-    },
-    PUNCH_OUT: {
-        label: "Punch Out",
-        badgeClass: "bg-red-50 text-red-700 ring-1 ring-inset ring-red-200",
-    },
-};
-
-function getEventMeta(event: string) {
-    return (
-        EVENT_META[event] ?? {
-            label: event
-                .toLowerCase()
-                .split("_")
-                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                .join(" "),
-            badgeClass: "bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200",
-        }
-    );
-}
 
 function getGreeting(hour: number) {
     if (hour < 12) return "Good morning";
@@ -420,10 +388,11 @@ export default function Dashboard() {
                                                 Department
                                             </th>
                                             <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                                Event
+                                                Status
                                             </th>
+
                                             <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                                Time
+                                                Punch In
                                             </th>
                                         </tr>
                                     </thead>
@@ -431,7 +400,6 @@ export default function Dashboard() {
                                     <tbody className="divide-y divide-slate-100">
 
                                         {recentAttendance.map((item, index) => {
-                                            const eventMeta = getEventMeta(item.event);
 
                                             return (
                                                 <motion.tr
@@ -457,15 +425,19 @@ export default function Dashboard() {
                                                     </td>
 
                                                     <td className="whitespace-nowrap px-6 py-4">
-                                                        <span
-                                                            className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${eventMeta.badgeClass}`}
-                                                        >
-                                                            {eventMeta.label}
+                                                        <span className="inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-200">
+                                                            {item.status}
                                                         </span>
                                                     </td>
 
                                                     <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
-                                                        {item.time ?? "—"}
+                                                        {item.punch_in_time
+                                                            ? new Date(item.punch_in_time).toLocaleTimeString("en-IN", {
+                                                                hour: "2-digit",
+                                                                minute: "2-digit",
+                                                                hour12: true,
+                                                            })
+                                                            : "—"}
                                                     </td>
                                                 </motion.tr>
                                             );

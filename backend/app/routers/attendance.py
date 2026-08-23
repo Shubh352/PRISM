@@ -35,54 +35,28 @@ def create_attendance(
 )
 def get_attendance(
     db: Session = Depends(get_db),
-    current_account=Depends(require_role(AuthRole.ADMIN, AuthRole.HOD)),
+    current_account=Depends(
+        require_role(
+            AuthRole.ADMIN,
+            AuthRole.HOD,
+        )
+    ),
 ):
 
-    records = db.query(Attendance).all()
+    records = (
+        db.query(Attendance)
+        .order_by(
+            Attendance.attendance_date.desc(),
+            Attendance.punch_in_time.desc(),
+        )
+        .all()
+    )
 
     response = []
 
     for attendance in records:
 
-        # ---------- Overall Status ----------
-
-        if (
-            attendance.entry_1_time
-            and attendance.entry_2_time
-            and attendance.punch_out_time
-        ):
-            status = "Present"
-
-        elif (
-            attendance.entry_1_time
-            or attendance.entry_2_time
-            or attendance.punch_out_time
-        ):
-            status = "Partial"
-
-        else:
-            status = "Absent"
-
-        # ---------- Morning ----------
-
-        if attendance.entry_1_time:
-            morning_status = "Present"
-        else:
-            morning_status = "-"
-
-        # ---------- Afternoon ----------
-
-        if attendance.entry_2_time:
-            afternoon_status = "Present"
-        else:
-            afternoon_status = "-"
-
-        # ---------- Punch Out ----------
-
-        if attendance.punch_out_time:
-            punch_out_status = "Done"
-        else:
-            punch_out_status = "-"
+        status = "Present" if attendance.punch_in_time else "Absent"
 
         response.append(
             AttendanceDetailsResponse(
@@ -92,12 +66,7 @@ def get_attendance(
                 department=attendance.user.department.department_name,
                 semester=attendance.user.semester,
                 attendance_date=attendance.attendance_date,
-                entry_1_time=attendance.entry_1_time,
-                entry_2_time=attendance.entry_2_time,
-                punch_out_time=attendance.punch_out_time,
-                morning_status=morning_status,
-                afternoon_status=afternoon_status,
-                punch_out_status=punch_out_status,
+                punch_in_time=attendance.punch_in_time,
                 status=status,
             )
         )

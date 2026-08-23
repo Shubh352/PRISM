@@ -4,7 +4,6 @@ from sqlalchemy.orm import Session
 
 from app.models.attendance import Attendance
 from app.models.user import User
-from app.models.device_log import DeviceLog
 
 
 class DashboardService:
@@ -13,6 +12,8 @@ class DashboardService:
         self,
         db: Session,
     ):
+
+        today = date.today()
 
         total_students = (
             db.query(User)
@@ -24,8 +25,14 @@ class DashboardService:
 
         present_today = (
             db.query(Attendance)
+            .join(
+                User,
+                Attendance.user_id == User.id,
+            )
             .filter(
-                Attendance.attendance_date == date.today(),
+                Attendance.attendance_date == today,
+                User.user_type == "Student",
+                Attendance.punch_in_time.isnot(None),
             )
             .count()
         )
@@ -46,23 +53,24 @@ class DashboardService:
         self,
         db: Session,
     ):
+        today = date.today()
 
-        logs = (
+        attendances = (
             db.query(
-                DeviceLog,
+                Attendance,
                 User,
-                Attendance,
-            )
-            .join(
-                Attendance,
-                DeviceLog.attendance_id == Attendance.id,
             )
             .join(
                 User,
                 Attendance.user_id == User.id,
             )
+            .filter(
+                Attendance.attendance_date == today,
+                Attendance.punch_in_time.isnot(None),
+                User.user_type == "Student",
+            )
             .order_by(
-                DeviceLog.id.desc(),
+                Attendance.punch_in_time.desc(),
             )
             .limit(10)
             .all()
@@ -70,16 +78,7 @@ class DashboardService:
 
         result = []
 
-        for log, user, attendance in logs:
-
-            if log.event.name == "MORNING_ENTRY":
-                scan_time = attendance.entry_1_time
-
-            elif log.event.name == "AFTERNOON_ENTRY":
-                scan_time = attendance.entry_2_time
-
-            else:
-                scan_time = attendance.punch_out_time
+        for attendance, user in attendances:
 
             result.append(
                 {
@@ -87,8 +86,8 @@ class DashboardService:
                     "roll_number": user.roll_number,
                     "department": user.department.department_name,
                     "semester": user.semester,
-                    "event": log.event.value,
-                    "time": (scan_time.strftime("%I:%M %p") if scan_time else None),
+                    "status": "Present",
+                    "punch_in_time": attendance.punch_in_time,
                 }
             )
 

@@ -1,11 +1,9 @@
-from datetime import date, datetime
-
 from sqlalchemy.orm import Session
 
-from app.models.attendance import Attendance
 from app.enums.scan_event import ScanEvent
-from app.models.device_log import DeviceLog
 from app.enums.sync_status import SyncStatus
+from app.models.attendance import Attendance
+from app.models.device_log import DeviceLog
 
 
 class AttendanceRules:
@@ -13,199 +11,47 @@ class AttendanceRules:
     def process(
         self,
         db: Session,
+        attendance,
         user,
         device,
-        session,
-        action,
         scan_timestamp,
     ):
 
-        if action == ScanEvent.MORNING_ENTRY and session.session_number != 1:
-            return {"success": False, "message": "Morning Attendance Window Closed"}
+        # Attendance already exists for today.
+        if attendance is not None:
+            return {
+                "success": False,
+                "message": "Attendance Already Recorded",
+                "name": user.name,
+            }
 
-        if action == ScanEvent.AFTERNOON_ENTRY and session.session_number != 2:
-            return {"success": False, "message": "Afternoon Attendance Window Closed"}
-
-        attendance = (
-            db.query(Attendance)
-            .filter(
-                Attendance.user_id == user.id,
-                Attendance.attendance_date == scan_timestamp.date(),
-            )
-            .first()
+        # Create today's attendance record.
+        attendance = Attendance(
+            user_id=user.id,
+            attendance_date=scan_timestamp.date(),
+            punch_in_time=scan_timestamp,
         )
 
-        if action == ScanEvent.MORNING_ENTRY:
-            return self._morning_entry(
-                db,
-                attendance,
-                device,
-                user,
-                scan_timestamp,
-            )
+        db.add(attendance)
+        db.flush()
 
-        if action == ScanEvent.AFTERNOON_ENTRY:
-            return self._afternoon_entry(db, attendance, device, user, scan_timestamp)
-
-        if action == ScanEvent.PUNCH_OUT:
-            return self._punch_out(db, attendance, device, user, scan_timestamp)
-
-        return {"success": False, "message": "Invalid Action"}
-
-    def _morning_entry(
-        self,
-        db,
-        attendance,
-        device,
-        user,
-        scan_timestamp,
-    ):
-
-        if attendance is None:
-
-            attendance = Attendance(
-                user_id=user.id,
-                attendance_date=scan_timestamp.date(),
-            )
-
-            db.add(attendance)
-            db.flush()
-
-        if attendance.entry_1_time is not None:
-            return {
-                "success": False,
-                "message": "Morning Attendance Already Recorded",
-            }
-
-        attendance.entry_1_time = scan_timestamp
-
-        db.commit()
-        db.refresh(attendance)
-
-        self._create_device_log(
-            db,
-            attendance,
-            device,
-            user,
-            ScanEvent.MORNING_ENTRY,  # change accordingly
-        )
-
-        return {
-            "success": True,
-            "message": "Morning Attendance Recorded",
-            "name": user.name,
-        }
-
-    def _afternoon_entry(
-        self,
-        db: Session,
-        attendance,
-        device,
-        user,
-        scan_timestamp,
-    ):
-
-        if attendance is None:
-
-            attendance = Attendance(
-                user_id=user.id,
-                attendance_date=scan_timestamp.date(),
-            )
-
-            db.add(attendance)
-            db.flush()
-
-        if attendance.entry_2_time is not None:
-            return {
-                "success": False,
-                "message": "Afternoon Attendance Already Recorded",
-            }
-
-        attendance.entry_2_time = scan_timestamp
-
-        db.commit()
-        db.refresh(attendance)
-
-        self._create_device_log(
-            db,
-            attendance,
-            device,
-            user,
-            # _afternoon_entry()
-            ScanEvent.AFTERNOON_ENTRY,
-        )
-
-        return {
-            "success": True,
-            "message": "Afternoon Attendance Recorded",
-            "name": user.name,
-        }
-
-    def _punch_out(
-        self,
-        db: Session,
-        attendance,
-        device,
-        user,
-        scan_timestamp,
-    ):
-
-        # No attendance record exists
-        if attendance is None:
-            return {
-                "success": False,
-                "message": "Cannot Punch Out Without Attendance",
-            }
-
-        # Student must have at least one valid entry
-        if attendance.entry_1_time is None and attendance.entry_2_time is None:
-            return {
-                "success": False,
-                "message": "Cannot Punch Out Without Attendance",
-            }
-
-        # Punch out can only be recorded once
-        if attendance.punch_out_time is not None:
-            return {
-                "success": False,
-                "message": "Punch Out Already Recorded",
-            }
-
-        attendance.punch_out_time = scan_timestamp
-
-        db.commit()
-        db.refresh(attendance)
-
-        self._create_device_log(
-            db,
-            attendance,
-            device,
-            user,
-            ScanEvent.PUNCH_OUT,
-        )
-
-        return {
-            "success": True,
-            "message": "Punch Out Recorded",
-            "name": user.name,
-        }
-
-    def _create_device_log(
-        self,
-        db: Session,
-        attendance,
-        device,
-        user,
-        action,
-    ):
-
+        # Keep an internal device log for auditing.
         log = DeviceLog(
             attendance_id=attendance.id,
             device_id=device.id,
             fingerprint_id=user.fingerprint_id,
-            event=action,
+            event=ScanEvent.MORNING_ENTRY,
+            scan_time=scan_timestamp,
             sync_status=SyncStatus.SYNCED,
         )
 
         db.add(log)
+
         db.commit()
+        db.refresh(attendance)
+
+        return {
+            "success": True,
+            "message": "Attendance Recorded",
+            "name": user.name,
+        }

@@ -4,8 +4,6 @@
 #include <Arduino.h>
 #include <RTClib.h>
 
-#include "AttendanceAction.h"
-
 struct AttendanceRecord
 {
     String recordId;
@@ -13,8 +11,6 @@ struct AttendanceRecord
     DateTime timestamp;
 
     uint16_t fingerprintId;
-
-    AttendanceAction action;
 };
 
 #endif

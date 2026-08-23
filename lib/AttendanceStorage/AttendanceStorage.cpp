@@ -26,28 +26,20 @@ bool AttendanceStorage::writeHeaderIfNeeded(
         return false;
     }
 
-    file.println(
-        "record_id,timestamp,fingerprint_id,action,device_code,sync_status,backend_result");
+    if (String(path).endsWith("attendance_log.csv"))
+    {
+        file.println(
+            "record_id,timestamp,fingerprint_id,device_code,sync_status,backend_result");
+    }
+    else
+    {
+        file.println(
+            "record_id,timestamp,fingerprint_id,device_code");
+    }
 
     file.close();
 
     return true;
-}
-
-String AttendanceStorage::actionToString(
-    AttendanceAction action)
-{
-    switch (action)
-    {
-    case AttendanceAction::ENTRY:
-        return "MORNING_ENTRY";
-
-    case AttendanceAction::EXIT:
-        return "PUNCH_OUT";
-
-    default:
-        return "UNKNOWN";
-    }
 }
 
 bool AttendanceStorage::saveAttendance(
@@ -68,13 +60,13 @@ bool AttendanceStorage::saveAttendance(
     file.print(record.recordId);
     file.print(",");
 
-    file.print(record.timestamp.timestamp(DateTime::TIMESTAMP_FULL));
+    file.print(
+        record.timestamp.timestamp(
+            DateTime::TIMESTAMP_FULL));
+
     file.print(",");
 
     file.print(record.fingerprintId);
-    file.print(",");
-
-    file.print(actionToString(record.action));
     file.print(",");
 
     file.print(DEVICE_CODE);
@@ -107,13 +99,12 @@ bool AttendanceStorage::savePending(
     file.print(",");
 
     file.print(
-        record.timestamp.timestamp(DateTime::TIMESTAMP_FULL));
+        record.timestamp.timestamp(
+            DateTime::TIMESTAMP_FULL));
+
     file.print(",");
 
     file.print(record.fingerprintId);
-    file.print(",");
-
-    file.print(actionToString(record.action));
     file.print(",");
 
     file.println(DEVICE_CODE);
@@ -127,7 +118,9 @@ bool AttendanceStorage::removePending(
     const String &recordId)
 {
     File input =
-        SD.open("/PRISM/pending.csv", FILE_READ);
+        SD.open(
+            "/PRISM/pending.csv",
+            FILE_READ);
 
     if (!input)
     {
@@ -135,7 +128,9 @@ bool AttendanceStorage::removePending(
     }
 
     File output =
-        SD.open("/PRISM/temp.csv", FILE_WRITE);
+        SD.open(
+            "/PRISM/temp.csv",
+            FILE_WRITE);
 
     if (!output)
     {
@@ -152,7 +147,6 @@ bool AttendanceStorage::removePending(
 
         line.trim();
 
-        // Always keep header
         if (firstLine)
         {
             output.println(line);
@@ -160,18 +154,18 @@ bool AttendanceStorage::removePending(
             continue;
         }
 
-        // Skip empty lines
         if (line.length() == 0)
         {
             continue;
         }
 
-        // Compare only the Record ID
         int comma =
             line.indexOf(',');
 
         String currentId =
-            line.substring(0, comma);
+            line.substring(
+                0,
+                comma);
 
         if (currentId != recordId)
         {
@@ -182,7 +176,8 @@ bool AttendanceStorage::removePending(
     input.close();
     output.close();
 
-    SD.remove("/PRISM/pending.csv");
+    SD.remove(
+        "/PRISM/pending.csv");
 
     SD.rename(
         "/PRISM/temp.csv",

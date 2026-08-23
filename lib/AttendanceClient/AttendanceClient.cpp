@@ -10,9 +10,11 @@ AttendanceResponse AttendanceClient::sendAttendance(
     const AttendanceRecord &record)
 {
     AttendanceResponse response;
+
     if (WiFi.status() != WL_CONNECTED)
     {
         Serial.println("WiFi Not Connected");
+
         response.success = false;
         response.delivered = false;
         response.message = "WiFi Not Connected";
@@ -23,16 +25,12 @@ AttendanceResponse AttendanceClient::sendAttendance(
     HTTPClient http;
 
     String url = String(SERVER_URL) + "/attendance";
+
     http.begin(url);
 
     http.addHeader(
         "Content-Type",
         "application/json");
-
-    String actionString =
-        (record.action == AttendanceAction::ENTRY)
-            ? "MORNING_ENTRY"
-            : "PUNCH_OUT";
 
     String body =
         "{"
@@ -43,9 +41,6 @@ AttendanceResponse AttendanceClient::sendAttendance(
         String(record.fingerprintId) +
         ","
         "\"device_code\":\"" DEVICE_CODE "\","
-        "\"action\":\"" +
-        actionString +
-        "\","
         "\"scan_timestamp\":\"" +
         record.timestamp.timestamp(DateTime::TIMESTAMP_FULL) +
         "\""
@@ -92,9 +87,7 @@ AttendanceResponse AttendanceClient::sendAttendance(
     else
     {
         response.success = false;
-
         response.delivered = false;
-
         response.message = "HTTP Request Failed";
     }
 

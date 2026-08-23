@@ -11,17 +11,12 @@ import {
 import type { AttendanceRecord } from "@/types/attendance";
 
 type Props = {
-
     isOpen: boolean;
-
     attendance: AttendanceRecord | null;
-
     onClose: () => void;
-
 };
 
 function formatDate(date: string) {
-
     return new Date(date).toLocaleDateString(
         "en-IN",
         {
@@ -30,11 +25,9 @@ function formatDate(date: string) {
             year: "numeric",
         }
     );
-
 }
 
 function formatTime(time: string | null) {
-
     if (!time) return "—";
 
     return new Date(time).toLocaleTimeString(
@@ -45,39 +38,31 @@ function formatTime(time: string | null) {
             hour12: true,
         }
     );
-
 }
 
 export default function AttendanceDetailsModal({
-
     isOpen,
-
     attendance,
-
     onClose,
-
 }: Props) {
 
     if (!attendance) return null;
 
     return (
-
         <Modal
             isOpen={isOpen}
             title="Attendance Details"
             onClose={onClose}
         >
-
             <div className="space-y-6">
+
+                {/* Student Information */}
 
                 <div>
 
                     <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold">
-
                         <User size={20} />
-
                         Student Information
-
                     </h3>
 
                     <div className="grid grid-cols-2 gap-5">
@@ -108,37 +93,30 @@ export default function AttendanceDetailsModal({
 
                 <hr />
 
+                {/* Attendance Information */}
+
                 <div>
 
                     <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold">
-
                         <Clock size={20} />
-
-                        Attendance Timeline
-
+                        Attendance
                     </h3>
 
                     <div className="grid grid-cols-2 gap-5">
 
                         <Info
                             label="Date"
-                            value={formatDate(attendance.attendance_date)}
+                            value={formatDate(
+                                attendance.attendance_date
+                            )}
                             icon={<Calendar size={16} />}
                         />
 
                         <Info
-                            label="Morning Entry"
-                            value={formatTime(attendance.entry_1_time)}
-                        />
-
-                        <Info
-                            label="Afternoon Entry"
-                            value={formatTime(attendance.entry_2_time)}
-                        />
-
-                        <Info
-                            label="Punch Out"
-                            value={formatTime(attendance.punch_out_time)}
+                            label="Punch In"
+                            value={formatTime(
+                                attendance.punch_in_time
+                            )}
                         />
 
                     </div>
@@ -147,64 +125,47 @@ export default function AttendanceDetailsModal({
 
                 <hr />
 
+                {/* Status */}
+
                 <div>
 
                     <p className="mb-2 text-sm text-gray-500">
-
-                        Overall Status
-
+                        Status
                     </p>
 
-                    <StatusBadge status={attendance.status} />
+                    <StatusBadge
+                        status={attendance.status}
+                    />
 
                 </div>
 
             </div>
-
         </Modal>
-
     );
-
 }
 
 function Info({
-
     label,
-
     value,
-
     icon,
-
 }: {
-
     label: string;
-
     value: React.ReactNode;
-
     icon?: React.ReactNode;
-
 }) {
 
     return (
-
         <div>
 
             <p className="mb-1 flex items-center gap-2 text-sm text-gray-500">
-
                 {icon}
-
                 {label}
-
             </p>
 
             <p className="font-semibold">
-
                 {value}
-
             </p>
 
         </div>
-
     );
-
 }

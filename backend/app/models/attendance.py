@@ -6,11 +6,12 @@ from sqlalchemy import Date
 from sqlalchemy import DateTime
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
+from sqlalchemy import UniqueConstraint
 
 from sqlalchemy.orm import relationship
 
 from app.database.database import Base
-from sqlalchemy import UniqueConstraint
+
 
 class Attendance(Base):
     __tablename__ = "attendances"
@@ -34,17 +35,7 @@ class Attendance(Base):
         nullable=False,
     )
 
-    entry_1_time = Column(
-        DateTime,
-        nullable=True,
-    )
-
-    entry_2_time = Column(
-        DateTime,
-        nullable=True,
-    )
-
-    punch_out_time = Column(
+    punch_in_time = Column(
         DateTime,
         nullable=True,
     )

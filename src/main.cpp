@@ -8,7 +8,6 @@
 #include "AttendanceClient.h"
 #include "Config.h"
 #include "ButtonManager.h"
-#include "AttendanceAction.h"
 #include "BuzzerManager.h"
 #include "SDCardManager.h"
 #include "AttendanceIdManager.h"
@@ -24,8 +23,6 @@ WiFiManager wifiManager;
 AttendanceClient attendanceClient;
 ButtonManager buttonManager;
 
-AttendanceAction currentAction =
-    AttendanceAction::ENTRY;
 BuzzerManager buzzer;
 
 AttendanceIdManager attendanceIdManager;
@@ -193,20 +190,6 @@ void loop()
 
         if (buttonManager.entryJustPressed())
         {
-
-            currentAction =
-                AttendanceAction::ENTRY;
-
-            stateManager.setState(
-                PrismState::WAIT_FOR_FINGER);
-        }
-
-        if (buttonManager.exitJustPressed())
-        {
-
-            currentAction =
-                AttendanceAction::EXIT;
-
             stateManager.setState(
                 PrismState::WAIT_FOR_FINGER);
         }
@@ -215,14 +198,7 @@ void loop()
 
     case PrismState::WAIT_FOR_FINGER:
     {
-        if (currentAction == AttendanceAction::ENTRY)
-        {
-            prismDisplay.showScanning("ENTRY");
-        }
-        else
-        {
-            prismDisplay.showScanning("EXIT");
-        }
+        prismDisplay.showScanning("SCAN");
 
         currentFinger =
             fingerprint.authenticate();
@@ -261,9 +237,6 @@ void loop()
 
         record.fingerprintId =
             currentFinger.id;
-
-        record.action =
-            currentAction;
 
         AttendanceResponse response =
             syncManager.processAttendance(record);
