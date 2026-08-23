@@ -52,7 +52,7 @@ export default function LoginCard() {
 
             {/* Login Form */}
 
-            <div className="mt-10">
+            <div className="mt-8">
 
                 <LoginForm />
 
@@ -60,7 +60,7 @@ export default function LoginCard() {
 
             {/* Footer */}
 
-            <div className="mt-10">
+            <div className="mt-8">
 
                 <LoginFooter />
 

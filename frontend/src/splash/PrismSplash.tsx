@@ -543,7 +543,7 @@ export default function PrismSplash({ onComplete, className = "" }: PrismSplashP
         />
 
         <div className="mt-4 space-y-1">
-          {["Professional Real-time", "Intelligent Student Monitoring"].map((line, i) => (
+          {["Professional Real-time", "Intelligent Smart Presence Management"].map((line, i) => (
             <motion.p
               key={line}
               custom={i}
