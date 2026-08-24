@@ -13,6 +13,7 @@
 #include "AttendanceIdManager.h"
 #include "AttendanceStorage.h"
 #include "SyncManager.h"
+#include "DeviceClient.h"
 
 PrismDisplay prismDisplay;
 Fingerprint fingerprint;
@@ -22,7 +23,7 @@ FingerResult currentFinger;
 WiFiManager wifiManager;
 AttendanceClient attendanceClient;
 ButtonManager buttonManager;
-
+DeviceClient deviceClient;
 BuzzerManager buzzer;
 
 AttendanceIdManager attendanceIdManager;
@@ -35,8 +36,11 @@ SyncManager syncManager(
 unsigned long lastClockUpdate = 0;
 bool wasWifiConnected = false;
 unsigned long lastPendingSync = 0;
+unsigned long lastHeartbeat = 0;
 
 const unsigned long PENDING_SYNC_INTERVAL = 15000;
+
+const unsigned long HEARTBEAT_INTERVAL = 30000;
 
 void setup()
 {
@@ -130,6 +134,10 @@ void setup()
         rtc.syncWithNTP();
 
         syncManager.syncPending();
+
+        deviceClient.sendHeartbeat();
+
+        lastHeartbeat = millis();
     }
 
     stateManager.setState(PrismState::IDLE);
@@ -162,6 +170,10 @@ void loop()
         rtc.syncWithNTP();
 
         syncManager.syncPending();
+
+        deviceClient.sendHeartbeat();
+
+        lastHeartbeat = millis();
     }
 
     wasWifiConnected =
@@ -174,6 +186,15 @@ void loop()
         syncManager.syncPending();
 
         lastPendingSync = millis();
+    }
+
+    if (
+        wifiConnected &&
+        millis() - lastHeartbeat >= HEARTBEAT_INTERVAL)
+    {
+        deviceClient.sendHeartbeat();
+
+        lastHeartbeat = millis();
     }
 
     switch (stateManager.getState())

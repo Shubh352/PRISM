@@ -20,6 +20,11 @@ class DeviceUpdate(BaseModel):
     is_active: bool
 
 
+class DeviceHeartbeat(BaseModel):
+    device_code: str
+    firmware_version: str | None = None
+
+
 class DeviceResponse(BaseModel):
     id: int
     device_name: str

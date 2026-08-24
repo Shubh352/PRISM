@@ -1,9 +1,10 @@
-from datetime import date
+from datetime import date, datetime, timedelta
 
 from sqlalchemy.orm import Session
 
 from app.models.attendance import Attendance
 from app.models.user import User
+from app.models.device import Device
 
 
 class DashboardService:
@@ -42,11 +43,23 @@ class DashboardService:
             0,
         )
 
+        online_cutoff = datetime.utcnow() - timedelta(seconds=60)
+
+        devices_online = (
+            db.query(Device)
+            .filter(
+                Device.is_active == True,
+                Device.last_seen.isnot(None),
+                Device.last_seen >= online_cutoff,
+            )
+            .count()
+        )
+
         return {
             "total_students": total_students,
             "present_today": present_today,
             "absent_today": absent_today,
-            "devices_online": 0,
+            "devices_online": devices_online,
         }
 
     def get_recent_attendance(

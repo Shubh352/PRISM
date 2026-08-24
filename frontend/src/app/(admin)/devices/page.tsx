@@ -32,6 +32,12 @@ export default function DevicesPage() {
 
     useEffect(() => {
         fetchDevices();
+
+        const interval = setInterval(() => {
+            fetchDevices();
+        }, 30000);
+
+        return () => clearInterval(interval);
     }, []);
 
     async function fetchDevices() {
@@ -91,16 +97,48 @@ export default function DevicesPage() {
 
 
     function getDeviceStatus(device: Device) {
-
         if (!device.is_active) {
-            return "Inactive";
+            return (
+                <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+                    Inactive
+                </span>
+            );
         }
 
         if (!device.last_seen) {
-            return "Never connected";
+            return (
+                <span className="inline-flex rounded-full bg-yellow-50 px-3 py-1 text-xs font-semibold text-yellow-700">
+                    Never Connected
+                </span>
+            );
         }
 
-        return "Connected";
+        const lastSeen = new Date(
+            device.last_seen.endsWith("Z")
+                ? device.last_seen
+                : device.last_seen + "Z"
+        ).getTime();
+
+        const now = Date.now();
+
+        const isOnline =
+            now - lastSeen <= 60 * 1000;
+
+        if (isOnline) {
+            return (
+                <span className="inline-flex items-center gap-2 rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
+                    <span className="h-2 w-2 rounded-full bg-green-500" />
+                    Online
+                </span>
+            );
+        }
+
+        return (
+            <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
+                <span className="h-2 w-2 rounded-full bg-red-500" />
+                Offline
+            </span>
+        );
     }
 
     return (

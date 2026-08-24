@@ -5,13 +5,13 @@ from app.dependencies import get_db, require_role
 from app.enums.auth_role import AuthRole
 
 from app.models.device import Device
-
+from datetime import datetime
 from app.schemas.device import (
     DeviceCreate,
     DeviceUpdate,
     DeviceResponse,
+    DeviceHeartbeat,
 )
-
 
 router = APIRouter()
 
@@ -23,15 +23,11 @@ router = APIRouter()
 def create_device(
     device: DeviceCreate,
     db: Session = Depends(get_db),
-    current_account=Depends(
-        require_role(AuthRole.ADMIN)
-    ),
+    current_account=Depends(require_role(AuthRole.ADMIN)),
 ):
 
     existing_device = (
-        db.query(Device)
-        .filter(Device.device_code == device.device_code)
-        .first()
+        db.query(Device).filter(Device.device_code == device.device_code).first()
     )
 
     if existing_device:
@@ -53,6 +49,41 @@ def create_device(
     db.refresh(db_device)
 
     return db_device
+
+
+@router.post("/devices/heartbeat")
+def device_heartbeat(
+    heartbeat: DeviceHeartbeat,
+    db: Session = Depends(get_db),
+):
+    device = (
+        db.query(Device)
+        .filter(
+            Device.device_code == heartbeat.device_code,
+            Device.is_active == True,
+        )
+        .first()
+    )
+
+    if device is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Device not found or inactive",
+        )
+
+    device.last_seen = datetime.utcnow()
+
+    if heartbeat.firmware_version is not None:
+        device.firmware_version = heartbeat.firmware_version
+
+    db.commit()
+
+    return {
+        "success": True,
+        "message": "Heartbeat received",
+        "device_code": device.device_code,
+        "last_seen": device.last_seen,
+    }
 
 
 @router.get(
@@ -87,11 +118,7 @@ def get_device(
     ),
 ):
 
-    device = (
-        db.query(Device)
-        .filter(Device.id == device_id)
-        .first()
-    )
+    device = db.query(Device).filter(Device.id == device_id).first()
 
     if device is None:
         raise HTTPException(
@@ -110,16 +137,10 @@ def update_device(
     device_id: int,
     updated_device: DeviceUpdate,
     db: Session = Depends(get_db),
-    current_account=Depends(
-        require_role(AuthRole.ADMIN)
-    ),
+    current_account=Depends(require_role(AuthRole.ADMIN)),
 ):
 
-    device = (
-        db.query(Device)
-        .filter(Device.id == device_id)
-        .first()
-    )
+    device = db.query(Device).filter(Device.id == device_id).first()
 
     if device is None:
         raise HTTPException(
@@ -161,16 +182,10 @@ def update_device(
 def delete_device(
     device_id: int,
     db: Session = Depends(get_db),
-    current_account=Depends(
-        require_role(AuthRole.ADMIN)
-    ),
+    current_account=Depends(require_role(AuthRole.ADMIN)),
 ):
 
-    device = (
-        db.query(Device)
-        .filter(Device.id == device_id)
-        .first()
-    )
+    device = db.query(Device).filter(Device.id == device_id).first()
 
     if device is None:
         raise HTTPException(
@@ -181,6 +196,4 @@ def delete_device(
     db.delete(device)
     db.commit()
 
-    return {
-        "message": "Device deleted successfully"
-    }
+    return {"message": "Device deleted successfully"}
