@@ -1,6 +1,6 @@
 from datetime import date
 from datetime import datetime
-
+from sqlalchemy import String
 from sqlalchemy import Column
 from sqlalchemy import Date
 from sqlalchemy import DateTime
@@ -20,6 +20,13 @@ class Attendance(Base):
         Integer,
         primary_key=True,
         index=True,
+    )
+
+    record_id = Column(
+        String(100),
+        unique=True,
+        index=True,
+        nullable=False,
     )
 
     user_id = Column(

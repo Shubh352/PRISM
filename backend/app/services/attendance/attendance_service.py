@@ -49,21 +49,39 @@ class AttendanceService:
             }
 
         # ---------------------------------------------------------
-        # 3. Check today's attendance
+        # 3. Check whether this exact scan was already processed
+        # ---------------------------------------------------------
+
+        existing_record = (
+            db.query(Attendance)
+            .filter(
+                Attendance.record_id == attendance_request.record_id,
+            )
+            .first()
+        )
+
+        if existing_record is not None:
+            return {
+                "success": True,
+                "message": "Attendance Already Processed",
+                "name": user.name,
+            }
+
+        # ---------------------------------------------------------
+        # 4. Check today's attendance
         # ---------------------------------------------------------
 
         attendance = (
             db.query(Attendance)
             .filter(
                 Attendance.user_id == user.id,
-                Attendance.attendance_date
-                == attendance_request.scan_timestamp.date(),
+                Attendance.attendance_date == attendance_request.scan_timestamp.date(),
             )
             .first()
         )
 
         # ---------------------------------------------------------
-        # 4. Record simple punch-in attendance
+        # 5. Record simple punch-in attendance
         # ---------------------------------------------------------
 
         return self.rules.process(
@@ -72,4 +90,5 @@ class AttendanceService:
             user=user,
             device=device,
             scan_timestamp=attendance_request.scan_timestamp,
+            record_id=attendance_request.record_id,
         )

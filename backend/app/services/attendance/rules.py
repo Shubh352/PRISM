@@ -15,6 +15,7 @@ class AttendanceRules:
         user,
         device,
         scan_timestamp,
+        record_id,
     ):
 
         # Attendance already exists for today.
@@ -27,6 +28,7 @@ class AttendanceRules:
 
         # Create today's attendance record.
         attendance = Attendance(
+            record_id=record_id,
             user_id=user.id,
             attendance_date=scan_timestamp.date(),
             punch_in_time=scan_timestamp,
